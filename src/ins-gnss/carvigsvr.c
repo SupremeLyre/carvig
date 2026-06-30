@@ -15,6 +15,7 @@
 #define MAXTIMEDIFF     0.0        /* max time difference for suspend input stream */
 #define OUTSOLFRQ       100        /* frequency of output ins solutions */
 #define ONLY_COUPLED_VO 0          /* only coupled with imu and vision measurement data */
+#define CONSOLE_SOL_TOL 0.01       /* max offset from integer second for console output */
 
 #define NS(i,j,max)     ((((j)-1)%(max)-(i))<0?(((j)-1)%(max)-(i)+(max)):(((j)-1)%(max)-(i)))
 #define NE(i,j,max)     MAX(0,(((i)-(j))<0?((i)-(j)+(max)):((i)-(j))))
@@ -45,6 +46,32 @@ static void saveoutbuf(rtksvr_t *svr, unsigned char *buff, int n, int index)
     
     rtksvrunlock(svr);
 }
+/* print compact real-time solution to console -------------------------------*/
+static void printsolconsole(const sol_t *sol)
+{
+    static int last_week=-1,last_sec=-1;
+    double tow,pos[3],vel[3],tow_sec;
+    int week,sec;
+
+    if (sol->time.time==0||norm(sol->rr,3)==0.0) return;
+
+    tow=time2gpst(sol->time,&week);
+    tow_sec=floor(tow+0.5);
+    if (fabs(tow-tow_sec)>CONSOLE_SOL_TOL) return;
+
+    sec=(int)tow_sec;
+    if (week==last_week&&sec==last_sec) return;
+    last_week=week; last_sec=sec;
+
+    ecef2pos(sol->rr,pos);
+    ecef2enu(pos,sol->rr+3,vel);
+
+    printf("%s,%13.9f,%13.9f,%9.4f,%9.5f,%9.5f,%9.5f,%10.6f,%10.6f,%10.6f\n",
+           time_str(gpst2time(week,tow_sec),3),pos[0]*R2D,pos[1]*R2D,pos[2],
+           vel[1],vel[0],vel[2],sol->att[0]*R2D,sol->att[1]*R2D,
+           NORMANG(sol->att[2]*R2D));
+    fflush(stdout);
+}
 /* write solution to output stream -------------------------------------------*/
 static void writesol(rtksvr_t *svr, int index)
 {
@@ -58,6 +85,7 @@ static void writesol(rtksvr_t *svr, int index)
     /* update ins update solution status */
     if (opt->mode>=PMODE_INS_UPDATE&&opt->mode<=PMODE_INS_TGNSS||opt->mode==PMODE_INS_LGNSS_VO) {
         ins2sol(&svr->rtk.ins,&opt->insopt,&svr->rtk.sol);
+        printsolconsole(&svr->rtk.sol);
     }
     /* write solution status output stream */
     for (i=0;i<2;i++) {
@@ -1777,7 +1805,7 @@ static void *rtksvrthread(void *arg)
         sleepms(svr->cycle-cputime);
     }
     for (i=0;i<MAXSTRRTK;i++) carvigsvrclosestr(svr,i);
-    for (i=0;i<5;i++) {
+    for (i=0;i<7;i++) {
         svr->nb[i]=svr->npb[i]=0;
         free(svr->buff[i]); svr->buff[i]=NULL;
         free(svr->pbuf[i]); svr->pbuf[i]=NULL;

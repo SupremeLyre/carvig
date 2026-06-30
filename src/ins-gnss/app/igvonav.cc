@@ -1455,7 +1455,6 @@ int main(int argc, char **argv)
     }
     /* stop rtk server */
     stopsvr(pvt);
-    carvigsvrfree(&svr);
 
     /* close consoles */
     for (i = 0; i < MAXCON; i++)
@@ -1474,6 +1473,7 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "navigation data save error: %s\n", NAVIFILE);
     }
+    carvigsvrfree(&svr);
     traceclose();
     return 0;
 }

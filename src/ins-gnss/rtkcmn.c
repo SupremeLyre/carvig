@@ -3437,7 +3437,7 @@ extern int savenav(const char *file, const nav_t *nav)
     
     if (!(fp=fopen(file,"w"))) return 0;
     
-    for (i=0;i<MAXSAT;i++) {
+    if (nav->eph) for (i=0;i<nav->n;i++) {
         if (nav->eph[i].ttr.time==0) continue;
         satno2id(nav->eph[i].sat,id);
         fprintf(fp,"%s,%d,%d,%d,%d,%d,%d,%d,%.14E,%.14E,%.14E,%.14E,%.14E,%.14E,"
@@ -3453,7 +3453,7 @@ extern int savenav(const char *file, const nav_t *nav)
                 nav->eph[i].fit ,nav->eph[i].f0 ,nav->eph[i].f1  ,nav->eph[i].f2  ,
                 nav->eph[i].tgd[0],nav->eph[i].code,nav->eph[i].flag);
     }
-    for (i=0;i<MAXPRNGLO;i++) {
+    if (nav->geph) for (i=0;i<nav->ng;i++) {
         if (nav->geph[i].tof.time==0) continue;
         satno2id(nav->geph[i].sat,id);
         fprintf(fp,"%s,%d,%d,%d,%d,%d,%d,%d,%.14E,%.14E,%.14E,%.14E,%.14E,%.14E,"
@@ -3569,12 +3569,12 @@ extern void tracelevel(int level)
 extern void trace(int level, const char *format, ...)
 {
     va_list ap;
-    
+
     /* print error message to stderr */
     if (level<=1) {
         va_start(ap,format); vfprintf(stderr,format,ap); va_end(ap);
     }
-    if (level==4) return;
+    if (level==4||level>level_trace) return;
 #if TRACE_STDERR
     fp_trace=stderr;
 #endif
@@ -3587,6 +3587,8 @@ extern void trace(int level, const char *format, ...)
 extern void tracet(int level, const char *format, ...)
 {
     va_list ap;
+
+    if (level>level_trace) return;
 #if TRACE_STDERR
     fp_trace=stderr;
 #endif
@@ -3598,6 +3600,7 @@ extern void tracet(int level, const char *format, ...)
 }
 extern void tracemat(int level, const double *A, int n, int m, int p, int q)
 {
+    if (level>level_trace) return;
 #if TRACE_STDERR
     fp_trace=stderr;
 #endif
@@ -3640,9 +3643,8 @@ extern void traceobs(int level, const obsd_t *obs, int n)
 
 #if TRACE_STDERR
     fp_trace=stderr;
-#else
-    if (!fp_trace||level>level_trace) return;
 #endif
+    if (!fp_trace||level>level_trace) return;
     for (i=0;i<n;i++) {
         time2str(obs[i].time,str,3);
         satno2id(obs[i].sat,id);
@@ -3661,9 +3663,8 @@ extern void tracenav(int level, const nav_t *nav)
 
 #if TRACE_STDERR
     fp_trace=stderr;
-#else
-    if (!fp_trace||level>level_trace) return;
 #endif
+    if (!fp_trace||level>level_trace) return;
     for (i=0;i<nav->n;i++) {
         time2str(nav->eph[i].toe,s1,0);
         time2str(nav->eph[i].ttr,s2,0);
@@ -3684,9 +3685,8 @@ extern void tracegnav(int level, const nav_t *nav)
     int i;
 #if TRACE_STDERR
     fp_trace=stderr;
-#else
-    if (!fp_trace||level>level_trace) return;
 #endif
+    if (!fp_trace||level>level_trace) return;
     for (i=0;i<nav->ng;i++) {
         time2str(nav->geph[i].toe,s1,0);
         time2str(nav->geph[i].tof,s2,0);
@@ -3701,9 +3701,8 @@ extern void tracehnav(int level, const nav_t *nav)
     int i;
 #if TRACE_STDERR
     fp_trace=stderr;
-#else
-    if (!fp_trace||level>level_trace) return;
 #endif
+    if (!fp_trace||level>level_trace) return;
     for (i=0;i<nav->ns;i++) {
         time2str(nav->seph[i].t0,s1,0);
         time2str(nav->seph[i].tof,s2,0);
@@ -3719,9 +3718,8 @@ extern void tracepeph(int level, const nav_t *nav)
 
 #if TRACE_STDERR
     fp_trace=stderr;
-#else
-    if (!fp_trace||level>level_trace) return;
 #endif
+    if (!fp_trace||level>level_trace) return;
     for (i=0;i<nav->ne;i++) {
         time2str(nav->peph[i].time,s,0);
         for (j=0;j<MAXSAT;j++) {
@@ -3742,9 +3740,8 @@ extern void tracepclk(int level, const nav_t *nav)
     
 #if TRACE_STDERR
     fp_trace=stderr;
-#else
-    if (!fp_trace||level>level_trace) return;
 #endif
+    if (!fp_trace||level>level_trace) return;
     for (i=0;i<nav->nc;i++) {
         time2str(nav->pclk[i].time,s,0);
         for (j=0;j<MAXSAT;j++) {
