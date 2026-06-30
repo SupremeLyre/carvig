@@ -5,6 +5,7 @@
  *
  * history : 2017/01/30  1.0  begin writing
  *-----------------------------------------------------------------------------*/
+#define CARVIG_NO_URA_PROTOS
 #include "carvig.h"
 
 #define SBP_SYNC1 0x55           /* SBP message header sync */
@@ -289,7 +290,7 @@ static uint8_t puPayloadTmp[256];
 static const gtime_t time0={0};
 
 /* ura value (m) to ura index ------------------------------------------------*/
-static int uraindex_local(double value)
+static int uraindex(double value)
 {
     int i;
     for (i = 0; i < 15; i++)
@@ -577,7 +578,7 @@ static void decode_gpsnav_common_dep1(uint8_t *_pBuff, eph_t *_pEph)
 
     _pEph->toes = U4(_pBuff + 4);
     uWeekE = U2(_pBuff + 8);
-    _pEph->sva = uraindex_local(R8(_pBuff + 10)); /* URA index */
+    _pEph->sva = uraindex(R8(_pBuff + 10)); /* URA index */
     _pEph->fit = U4(_pBuff + 18) / 3600;
     /* _pEph->flag = U1(_pBuff + 22); SBP payload does not have L2 flag */
     _pEph->svh = U1(_pBuff + 23);
@@ -623,7 +624,7 @@ static void decode_gpsnav_common(uint8_t *_pBuff, eph_t *_pEph)
 
     _pEph->toes = U4(_pBuff + 4);
     uWeekE = U2(_pBuff + 8);
-    _pEph->sva = uraindex_local(R4(_pBuff + 10)); /* URA index */
+    _pEph->sva = uraindex(R4(_pBuff + 10)); /* URA index */
     _pEph->fit = U4(_pBuff + 14) / 3600;
     /* _pEph->flag = U1(_pBuff + 18); SBP payload does not have L2 flag */
     _pEph->svh = U1(_pBuff + 19);
@@ -669,7 +670,7 @@ static void decode_bdsnav_common(uint8_t *_pBuff, eph_t *_pEph)
 
     _pEph->toes = U4(_pBuff + 4) - BDS_SECOND_TO_GPS_SECOND;
     uWeekE = U2(_pBuff + 8);
-    _pEph->sva = uraindex_local(R4(_pBuff + 10)); /* URA index */
+    _pEph->sva = uraindex(R4(_pBuff + 10)); /* URA index */
     _pEph->fit = U4(_pBuff + 14) ? 0 : 4;
     _pEph->flag = U1(_pBuff + 18);
 
@@ -715,7 +716,7 @@ static void decode_galnav_common(uint8_t *_pBuff, eph_t *_pEph)
 
     _pEph->toes = U4(_pBuff + 4);
     uWeekE = U2(_pBuff + 8);
-    _pEph->sva = uraindex_local(R4(_pBuff + 10)); /* URA index */
+    _pEph->sva = uraindex(R4(_pBuff + 10)); /* URA index */
     _pEph->fit = U4(_pBuff + 14) ? 0 : 4;
     _pEph->flag = U1(_pBuff + 18);
 

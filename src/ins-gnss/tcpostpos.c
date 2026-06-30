@@ -4,6 +4,7 @@
 * version : $Revision: 1.1 $ $Date: 2008/09/05 01:32:44 $
 * history : 2019/04/14 1.0 new
 *----------------------------------------------------------------------------*/
+#define CARVIG_NO_READIMU_PROTO
 #include "carvig.h"
 
 /* constants-----------------------------------------------------------------*/
@@ -49,7 +50,7 @@ static void adj_imudata(const prcopt_t *opt,imu_t *imu)
     for (i=0;i<imu->n;i++) adjustimu(opt,&imu->data[i]);
 }
 /* read imu measurement data-------------------------------------------------*/
-static int readimu_post(const char *file,int type,const prcopt_t *prcopt,imu_t *imu)
+static int readimu(const char *file,int type,const prcopt_t *prcopt,imu_t *imu)
 {
     int nimu=0;
     switch (type) {
@@ -504,7 +505,7 @@ extern int tcpostpos(prcopt_t *popt, const solopt_t *solopt, int port,
         goto exit;
     }
     /* read imu data */
-    if (!(nimu=readimu_post(infiles[6],STRFMT_M39,popt,&imus))) {
+    if (!(nimu=readimu(infiles[6],STRFMT_M39,popt,&imus))) {
         trace(2,"read imu data fail\n");
         flag=0;
         goto exit;

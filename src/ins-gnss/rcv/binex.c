@@ -15,6 +15,7 @@
 *           2017/04/11 1.6 (char *) -> (signed char *)
 *                          fix bug on unchange-test of beidou ephemeris
 *-----------------------------------------------------------------------------*/
+#define CARVIG_NO_URA_PROTOS
 #include "carvig.h"
 
 #define BNXSYNC1    0xC2    /* binex sync (little-endian,regular-crc) */
@@ -119,7 +120,7 @@ static gtime_t adjday(gtime_t time, double tod)
     return timeadd(epoch2time(ep),tod);
 }
 /* ura value (m) to ura index ------------------------------------------------*/
-static int uraindex_local(double value)
+static int uraindex(double value)
 {
     int i;
     for (i=0;i<15;i++) if (ura_eph[i]>=value) break;
@@ -461,7 +462,7 @@ static int decode_bnx_01_01(raw_t *raw, unsigned char *buff, int len)
     eph.fit=flag&0xFF;
     eph.flag=(flag>>8)&0x01;
     eph.code=(flag>>9)&0x03;
-    eph.sva=uraindex_local(ura);
+    eph.sva=uraindex(ura);
 {
 char s1[32],s2[32],s3[32];
 time2str(raw->time,s1,0);
@@ -634,7 +635,7 @@ static int decode_bnx_01_04(raw_t *raw, unsigned char *buff, int len)
     eph.toe=gpst2time(eph.week,eph.toes);
     eph.toc=gpst2time(eph.week,eph.toes);
     eph.ttr=adjweek(eph.toe,tow);
-    eph.sva=uraindex_local(ura);
+    eph.sva=uraindex(ura);
     
     if (!strstr(raw->opt,"-EPHALL")) {
         if (raw->nav.eph[eph.sat-1].iode==eph.iode&&
@@ -771,7 +772,7 @@ static int decode_bnx_01_06(raw_t *raw, unsigned char *buff, int len)
     eph.toc=gpst2time(eph.week,eph.toes);
     eph.ttr=adjweek(eph.toe,tow);
     eph.fit=(flag&0x01)?0.0:2.0; /* 0:2hr,1:>2hr */
-    eph.sva=uraindex_local(ura);
+    eph.sva=uraindex(ura);
     eph.code=2; /* codes on L2 channel */
     
     if (!strstr(raw->opt,"-EPHALL")) {

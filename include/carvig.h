@@ -2545,8 +2545,10 @@ EXPORT double satazel(const double *pos, const double *e, double *azel);
 EXPORT double geodist(const double *rs, const double *rr, double *e);
 EXPORT void dops(int ns, const double *azel, double elmin, double *dop);
 EXPORT void csmooth(obs_t *obs, int ns);
+#ifndef CARVIG_NO_URA_PROTOS
 EXPORT double uravalue(int sys, int sva);
 EXPORT int uraindex(double value, int sys);
+#endif
 
 /* atmosphere models ---------------------------------------------------------*/
 EXPORT double ionmodel(gtime_t t, const double *ion, const double *pos,
@@ -2887,7 +2889,9 @@ EXPORT int  rtkopenstat(const char *file, int level);
 EXPORT void rtkclosestat(void);
 EXPORT int  rtkoutstat(rtk_t *rtk, char *buff);
 EXPORT int  insoutstat(rtk_t *rtk, char *buff);
+#ifndef CARVIG_NO_INITP_PROTO
 EXPORT void initP(int is,int ni,int nx,double unc,double unc0,double *P0);
+#endif
 EXPORT void initx(rtk_t *rtk, double xi, double var, int i);
 EXPORT void insinitx(insstate_t *ins,double xi,double var,int i);
 EXPORT int insinirtobs(rtksvr_t *svr,const obsd_t *obs,int n,const imud_t *imu);
@@ -3048,7 +3052,9 @@ EXPORT int  alignvnex(const double *imu,int n,double dt,const double *q0,
                       const double *pos,const double *phi0,const double *wvn,
                       const ins_align_t *pas,double *att0,double *qo);
 EXPORT int fine_align_lym(insstate_t *ins,const imud_t *data,int n,const insopt_t *opt);
+#ifndef CARVIG_NO_READIMU_PROTO
 EXPORT int readimu(const char *file, imu_t *imu,int decfmt,int format,int coor,int valfmt);
+#endif
 EXPORT int readstim300(const char *file,imu_t *imu);
 EXPORT int sortimudata(imu_t *imu);
 EXPORT void adjimudata(const prcopt_t *opt,imu_t *imu);
