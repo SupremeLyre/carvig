@@ -223,8 +223,8 @@ CvFourPointGroebnerEstimator::CvFourPointGroebnerEstimator( double _angle )
 // to be of 1 row x n col x 2 channel.
 int CvFourPointGroebnerEstimator::runKernel( const CvMat* q1, const CvMat* q2, CvMat* _rvec_tvec )
 {
-	Mat Q1 = Mat(q1).reshape(1, q1->cols);
-	Mat Q2 = Mat(q2).reshape(1, q2->cols);
+	Mat Q1 = cv::cvarrToMat(q1).reshape(1, q1->cols);
+	Mat Q2 = cv::cvarrToMat(q2).reshape(1, q2->cols);
 
 	Mat rvecs, tvecs;
 	four_point_groebner(Q1, Q2, angle, 1.0, Point2d(0, 0), rvecs, tvecs);
@@ -249,7 +249,7 @@ int CvFourPointGroebnerEstimator::runKernel( const CvMat* q1, const CvMat* q2, C
 void CvFourPointGroebnerEstimator::computeReprojError( const CvMat* m1, const CvMat* m2,
 													   const CvMat* model, CvMat* error )
 {
-	Mat X1(m1), X2(m2);
+	Mat X1 = cv::cvarrToMat(m1), X2 = cv::cvarrToMat(m2);
 	int n = X1.cols;
 	X1 = X1.reshape(1, n);
 	X2 = X2.reshape(1, n);
@@ -257,7 +257,7 @@ void CvFourPointGroebnerEstimator::computeReprojError( const CvMat* m1, const Cv
 	X1.convertTo(X1, CV_64F);
 	X2.convertTo(X2, CV_64F);
 
-	Mat rvec_tvec(model);
+	Mat rvec_tvec = cv::cvarrToMat(model);
 	Mat rvec = rvec_tvec.colRange(0, 3) * 1.0;
 	Mat tvec = rvec_tvec.colRange(3, 6) * 1.0;
 
@@ -318,9 +318,9 @@ void findPose4pt_groebner(cv::InputArray _points1, cv::InputArray _points2,
 	Mat rvec_tvec(1, 6, CV_64F);
 	CvFourPointGroebnerEstimator estimator(angle);
 
-	CvMat p1 = points1;
-	CvMat p2 = points2;
-	CvMat _rvec_tvec = rvec_tvec;
+	CvMat p1 = cvMat(points1.rows, points1.cols, points1.type(), points1.data);
+	CvMat p2 = cvMat(points2.rows, points2.cols, points2.type(), points2.data);
+	CvMat _rvec_tvec = cvMat(rvec_tvec.rows, rvec_tvec.cols, rvec_tvec.type(), rvec_tvec.data);
 	CvMat* tempMask = cvCreateMat(1, npoints, CV_8U);
 
 	assert(npoints >= 4);
@@ -329,7 +329,7 @@ void findPose4pt_groebner(cv::InputArray _points1, cv::InputArray _points2,
 	if (npoints == 4)
 	{
 		four_point_groebner(_points1, _points2, angle, focal, pp, _rvecs, _tvecs);
-		Mat(tempMask).setTo(true);
+		cvSet(tempMask, cvScalarAll(1));
 	}
 	else
 	{
@@ -346,7 +346,7 @@ void findPose4pt_groebner(cv::InputArray _points1, cv::InputArray _points2,
 		{
 			_mask.create(1, npoints, CV_8U, -1, true);
 			Mat mask = _mask.getMat();
-			Mat(tempMask).copyTo(mask);
+			cv::cvarrToMat(tempMask).copyTo(mask);
 		}
 
 

@@ -47,11 +47,24 @@
 #endif
 
 #include "opencv2/calib3d/calib3d.hpp"
+#include "opencv2/calib3d/calib3d_c.h"
+#include "opencv2/core/core_c.h"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/imgproc/imgproc_c.h"
-#include "opencv2/core/internal.hpp"
 #include "opencv2/features2d/features2d.hpp"
+#include <algorithm>
 #include <vector>
+
+#ifndef CV_LT
+#define CV_LT(a,b) ((a) < (b))
+#endif
+#ifndef CV_IMPLEMENT_QSORT
+#define CV_IMPLEMENT_QSORT(func_name, T, cmp) \
+void func_name(T* array, size_t total, void*) \
+{ \
+    std::sort(array, array + total, [](const T& a, const T& b) { return cmp(a, b); }); \
+}
+#endif
 
 #ifdef HAVE_TEGRA_OPTIMIZATION
 #include "opencv2/calib3d/calib3d_tegra.hpp"

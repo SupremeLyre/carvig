@@ -1,7 +1,6 @@
 #include "vo-matcher.h"
 #include "triangle.h"
 #include "vo-filter.h"
-#include <png++/png.hpp>
 
 using namespace std;
 
@@ -1483,4 +1482,3 @@ float Matcher::mean(const uint8_t* I,const int32_t &bpl,
             mean+=(float)*(I+getAddressOffsetImage(u,v,bpl));
     return mean/=(float)((u_max-u_min+1)*(v_max-v_min+1));
 }
-

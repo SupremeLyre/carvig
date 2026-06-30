@@ -19,8 +19,8 @@
 #include <carvig.h>
 
 #if ENAOPENCV
-#include <cxcore.h>
-#include <highgui.h>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
 #endif
 
 /* constants ----------------------------------------------------------------*/
@@ -124,7 +124,6 @@ extern int estvo(const voopt_t *opt,const img_t *img,double *dTr,double *ratio)
 {
     return estmotionmonoa(opt,img,dTr,ratio);
 }
-
 
 
 

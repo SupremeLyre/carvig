@@ -1066,6 +1066,7 @@ CV_IMPL void cvConvertPointsHomogeneous( const CvMat* src, CvMat* dst )
     }
 }
 
+#if CV_MAJOR_VERSION < 4
 cv::Mat cv::findHomography( InputArray _points1, InputArray _points2,
                             int method, double ransacReprojThreshold, OutputArray _mask )
 {
@@ -1184,4 +1185,5 @@ void cv::convertPointsHomogeneous( InputArray _src, OutputArray _dst )
     else
         convertPointsToHomogeneous(_src, _dst);
 }
+#endif
 /* End of file. */

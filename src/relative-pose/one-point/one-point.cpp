@@ -74,7 +74,7 @@ int CvOnePointEstimator::runKernel( const CvMat* q1, const CvMat* q2, CvMat* _th
 void CvOnePointEstimator::computeReprojError( const CvMat* m1, const CvMat* m2,
                                      const CvMat* model, CvMat* error )
 {
-    Mat X1(m1), X2(m2); 
+    Mat X1 = cv::cvarrToMat(m1), X2 = cv::cvarrToMat(m2); 
     int n = X1.cols; 
     X1 = X1.reshape(1, n); 
     X2 = X2.reshape(1, n); 
@@ -138,9 +138,9 @@ void findPose1pt(cv::InputArray _points1, cv::InputArray _points2,
     CvOnePointEstimator estimator; 
     Mat theta(1, 1, CV_64F); 
 
-	CvMat p1 = points1; 
-	CvMat p2 = points2; 
-	CvMat _theta = theta; 
+	CvMat p1 = cvMat(points1.rows, points1.cols, points1.type(), points1.data); 
+	CvMat p2 = cvMat(points2.rows, points2.cols, points2.type(), points2.data); 
+	CvMat _theta = cvMat(theta.rows, theta.cols, theta.type(), theta.data); 
 	CvMat* tempMask = cvCreateMat(1, npoints, CV_8U); 
 	
 	assert(npoints >= 1); 
@@ -158,7 +158,7 @@ void findPose1pt(cv::InputArray _points1, cv::InputArray _points2,
     {
     	_mask.create(1, npoints, CV_8U, -1, true); 
     	Mat mask = _mask.getMat(); 
-    	Mat(tempMask).copyTo(mask); 
+    	cv::cvarrToMat(tempMask).copyTo(mask); 
     }
     _rvec.create(3, 2, CV_64F, -1, true); 
     _tvec.create(3, 2, CV_64F, -1, true); 

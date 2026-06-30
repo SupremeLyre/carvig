@@ -81,9 +81,9 @@ Mat findEssentialMat5p( InputArray _points1, InputArray _points2, double focal, 
 	Mat E(3, 3, CV_64F); 
 	CvEMEstimator estimator; 
 
-	CvMat p1 = points1; 
-	CvMat p2 = points2; 
-	CvMat _E = E;  
+	CvMat p1 = cvMat(points1.rows, points1.cols, points1.type(), points1.data); 
+	CvMat p2 = cvMat(points2.rows, points2.cols, points2.type(), points2.data); 
+	CvMat _E = cvMat(E.rows, E.cols, E.type(), E.data);  
 	CvMat* tempMask = cvCreateMat(1, npoints, CV_8U); 
 	
 	assert(npoints >= 5); 
@@ -92,10 +92,10 @@ Mat findEssentialMat5p( InputArray _points1, InputArray _points2, double focal, 
     if (npoints == 5)
     {
         E.create(3 * 10, 3, CV_64F); 
-        _E = E; 
+        _E = cvMat(E.rows, E.cols, E.type(), E.data); 
         count = estimator.runKernel(&p1, &p2, &_E); 
         E = E.rowRange(0, 3 * count) * 1.0; 
-        Mat(tempMask).setTo(true); 
+        cvSet(tempMask, cvScalarAll(1)); 
     }
     else if (method == CV_RANSAC)
 	{
@@ -109,7 +109,7 @@ Mat findEssentialMat5p( InputArray _points1, InputArray _points2, double focal, 
     {
     	_mask.create(1, npoints, CV_8U, -1, true); 
     	Mat mask = _mask.getMat(); 
-    	Mat(tempMask).copyTo(mask); 
+    	cv::cvarrToMat(tempMask).copyTo(mask); 
     }
 	return E; 
 
@@ -275,8 +275,8 @@ int CvEMEstimator::runKernel( const CvMat* m1, const CvMat* m2, CvMat* model )
 // to be of 1 row x n col x 2 channel. 
 int CvEMEstimator::run5Point( const CvMat* q1, const CvMat* q2, CvMat* ematrix )
 {
-	Mat Q1 = Mat(q1).reshape(1, q1->cols); 
-	Mat Q2 = Mat(q2).reshape(1, q2->cols); 
+	Mat Q1 = cv::cvarrToMat(q1).reshape(1, q1->cols); 
+	Mat Q2 = cv::cvarrToMat(q2).reshape(1, q2->cols); 
 
 	int n = Q1.rows; 
 	Mat Q(n, 9, CV_64F); 
@@ -384,7 +384,7 @@ int CvEMEstimator::run5Point( const CvMat* q1, const CvMat* q2, CvMat* ematrix )
 void CvEMEstimator::computeReprojError( const CvMat* m1, const CvMat* m2,
                                      const CvMat* model, CvMat* error )
 {
-    Mat X1(m1), X2(m2); 
+    Mat X1 = cv::cvarrToMat(m1), X2 = cv::cvarrToMat(m2); 
     int n = X1.cols; 
     X1 = X1.reshape(1, n); 
     X2 = X2.reshape(1, n); 
@@ -392,7 +392,7 @@ void CvEMEstimator::computeReprojError( const CvMat* m1, const CvMat* m2,
     X1.convertTo(X1, CV_64F); 
     X2.convertTo(X2, CV_64F); 
 
-    Mat E(model); 
+    Mat E = cv::cvarrToMat(model); 
     for (int i = 0; i < n; i++)
     {
         Mat x1 = (Mat_<double>(3, 1) << X1.at<double>(i, 0), X1.at<double>(i, 1), 1.0); 
@@ -409,8 +409,8 @@ void CvEMEstimator::computeReprojError( const CvMat* m1, const CvMat* m2,
     }
 
 /*	Eigen::MatrixXd X1t, X2t; 
-	cv2eigen(Mat(m1).reshape(1, m1->cols), X1t); 
-	cv2eigen(Mat(m2).reshape(1, m2->cols), X2t); 
+	cv2eigen(cv::cvarrToMat(m1).reshape(1, m1->cols), X1t); 
+	cv2eigen(cv::cvarrToMat(m2).reshape(1, m2->cols), X2t); 
 	Eigen::MatrixXd X1(3, X1t.rows()); 
 	Eigen::MatrixXd X2(3, X2t.rows()); 
 	X1.topRows(2) = X1t.transpose(); 
@@ -419,7 +419,7 @@ void CvEMEstimator::computeReprojError( const CvMat* m1, const CvMat* m2,
 	X2.row(2).setOnes(); 
 
 	Eigen::MatrixXd E; 
-	cv2eigen(Mat(model), E); 
+	cv2eigen(cv::cvarrToMat(model), E); 
 	
 	// Compute Simpson's error
 	Eigen::MatrixXd Ex1, x2tEx1, Etx2, SimpsonError; 
@@ -659,4 +659,3 @@ void CvEMEstimator::getCoeffMat(double *e, double *A)
         A[i] = AA[i]; 
     }
 }
-

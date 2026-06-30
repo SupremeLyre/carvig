@@ -408,16 +408,15 @@ void GmsMatch(Mat &img1,vector<KeyPoint> &kp1,vector<KeyPoint> &kp2, Mat &img2,v
     Mat d1, d2;
     vector<DMatch> matches_all;
 
-    Ptr<FeatureDetector> detector = FeatureDetector::create("BRISK");
-    Ptr<DescriptorExtractor> descriptor_extractor = DescriptorExtractor::create("BRISK");
+    Ptr<Feature2D> brisk = BRISK::create();
     Ptr<DescriptorMatcher> descriptor_matcher = DescriptorMatcher::create("BruteForce");
 
-    detector->detect(img1,kp1);
-    detector->detect(img2,kp2);
+    brisk->detect(img1,kp1);
+    brisk->detect(img2,kp2);
 
     Mat descriptors1,descriptors2;
-    descriptor_extractor->compute(img1,kp1,descriptors1);
-    descriptor_extractor->compute(img2,kp2,descriptors2);
+    brisk->compute(img1,kp1,descriptors1);
+    brisk->compute(img2,kp2,descriptors2);
 
     descriptor_matcher->match(descriptors1, descriptors2, matches_all);
 

@@ -38,8 +38,20 @@
 // the use of this software, even if advised of the possibility of such damage.
 //
 //M*/
-#include <cv.h>
 #include <opencv2/opencv.hpp>
+#include <opencv2/core/core_c.h>
+#include <opencv2/imgproc/imgproc_c.h>
+
+#ifndef CV_RANSAC
+#define CV_RANSAC cv::RANSAC
+#endif
+#ifndef CV_FM_7POINT
+#define CV_FM_7POINT cv::FM_7POINT
+#endif
+#ifndef CV_FM_8POINT
+#define CV_FM_8POINT cv::FM_8POINT
+#endif
+
 #include "src/relative-pose/seven-eight-point/seven-eight-point.hpp"
 #include "src/relative-pose/five-point-nister/five-point.hpp"
 #include "src/relative-pose/four-point-groebner/four-point-groebner.hpp"

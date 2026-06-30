@@ -7,8 +7,8 @@
  * version : $Revision: 1.1 $ $Date: 2008/09/05 01:32:44 $
  * history : 2018/12/02 1.0 new
  *-----------------------------------------------------------------------------*/
-#include "carvig.h"
 #include "relative-pose.h"
+#include "carvig.h"
 
 /* recover camera pose from essential matrix-----------------------------------*/
 namespace cv {
@@ -194,7 +194,7 @@ namespace cv {
 extern int solveRt(const voopt_t *opt,const insstate_t *ins,const match_set_t *mf,
                    double *dT,double *ratio)
 {
-    vector<cv::Point2f> ll,rr;
+    std::vector<cv::Point2f> ll,rr;
     double R[9],t[3],Rt[9];
 
     trace(3,"solveRt:\n");
@@ -241,7 +241,7 @@ extern int solveRt(const voopt_t *opt,const insstate_t *ins,const match_set_t *m
 extern int solveRt5p(const voopt_t *opt,const insstate_t *ins,const match_set_t *mf,
                      double *dT,double *ratio)
 {
-    vector<cv::Point2f> ll,rr;
+    std::vector<cv::Point2f> ll,rr;
     Point2d pp={0};
     double R[9],t[3],Rt[9];
 

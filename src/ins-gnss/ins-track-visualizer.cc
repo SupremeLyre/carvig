@@ -17,9 +17,10 @@
  * version : $Revision: 1.1 $ $Date: 2008/09/05 01:32:44 $
  * history : 2018/10/25 1.0 new
  *-----------------------------------------------------------------------------*/
-#include <carvig.h>
-#include <cv.h>
 #include <opencv2/opencv.hpp>
+#include <opencv2/core/core_c.h>
+#include <opencv2/imgproc/imgproc_c.h>
+#include <carvig.h>
 
 using namespace std;
 using namespace cv;
@@ -70,7 +71,7 @@ extern void drawtrack(const track_t *track,const voopt_t *opt)
             cv::circle(outImage,point,8,cv::Scalar(0,0,255),1);
 
             sprintf(allName[j],"image_%d_%d",track->data[i].uid,track->data[i].first_frame+j);
-            cv::namedWindow(allName[j],CV_WINDOW_AUTOSIZE);
+            cv::namedWindow(allName[j],cv::WINDOW_AUTOSIZE);
             cv::imshow(allName[j],outImage);                                                                                                                                  
             cv::waitKey(0);                                                                                                                                                     
         }
@@ -93,7 +94,7 @@ extern void drawtrackd(const trackd_t *track,const voopt_t *opt)
     trace(3,"drawtrackd: n=%d\n",track->n);
 
     if (first) {
-        cv::namedWindow("Match-Image",CV_WINDOW_AUTOSIZE);
+        cv::namedWindow("Match-Image",cv::WINDOW_AUTOSIZE);
         first=0;
     }
     /* for each track. */
@@ -122,7 +123,7 @@ extern void dipsplyimg(const img_t *img)
 
     if (img==NULL) return;
     if (first) {
-        cv::namedWindow("Display-Image",CV_WINDOW_AUTOSIZE);
+        cv::namedWindow("Display-Image",cv::WINDOW_AUTOSIZE);
         first=0;
     }
     cv::Mat outImage(img->h,img->w,CV_8UC3);
@@ -193,7 +194,7 @@ extern void drawalltrack(const track_t *track)
     I.copyTo(II);
 
     if (first) {
-        cv::namedWindow("All-Match-Image-Display",CV_WINDOW_AUTOSIZE);
+        cv::namedWindow("All-Match-Image-Display",cv::WINDOW_AUTOSIZE);
         first=0;
     }
     cv::Mat overlay;
@@ -235,5 +236,3 @@ extern void drawalltrack(const track_t *track)
     cv::imshow("All-Match-Image-Display",I);
     cv::waitKey(3);
 }
-
-

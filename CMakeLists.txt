@@ -19,12 +19,9 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-find_package(OpenCV 3.0 QUIET)
+find_package(OpenCV QUIET)
 if(NOT OpenCV_FOUND)
-    find_package(OpenCV 2.4.3 QUIET)
-    if(NOT OpenCV_FOUND)
-        message(FATAL_ERROR "OpenCV>2.4.3 not found.")
-    endif()
+    message(FATAL_ERROR "OpenCV not found.")
 endif()
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(PythonLibs REQUIRED)
@@ -35,6 +32,7 @@ include_directories(${PROJECT_SOURCE_DIR}
         ${PROJECT_SOURCE_DIR}/src/ins-gnss/rcv
         ${PROJECT_SOURCE_DIR}/src/libviso
         ${EIGEN3_INCLUDE_DIR}
+        ${OpenCV_INCLUDE_DIRS}
 )
 include_directories(${PYTHON_INCLUDE_DIRS})
 
@@ -42,14 +40,16 @@ file(GLOB SRC_FILES "src/ins-gnss/*.cc" "src/ins-gnss/rcv/*.cc")
 
 add_library(carvig ${SRC_FILES})
 target_link_libraries(carvig blas lapack z pthread
-                      /usr/local/lib/libpng.so
+                      png
                       jpeg)
 
 set_target_properties(carvig PROPERTIES ARCHIVE_OUTPUT_DIRECTORY
                       ${PROJECT_SOURCE_DIR}/lib)
 
 # add test
-add_subdirectory(test)
+if(EXISTS "${PROJECT_SOURCE_DIR}/test/CMakeLists.txt")
+    add_subdirectory(test)
+endif()
 
 # add relative pose estimate library
 add_subdirectory(src/relative-pose)
@@ -76,4 +76,3 @@ target_link_libraries(rnx2rtkp
                       ${OpenCV_LIBS}
                       five-point-nister
                       viso)
-
