@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-* lc-fbsm.cc : ins-gnss loosely coupled fwd/bwd fixed-point smoother app.
+* lc-fbsm.c : ins-gnss loosely coupled fwd/bwd fixed-point smoother app.
 *
 * version : $Revision: 1.1 $ $Date: 2008/09/05 01:32:44 $
 * history : 2018/10/01 1.0 new
@@ -100,7 +100,7 @@ static void adj_imudata(const prcopt_t *opt,imu_t *imu)
     for (i=0;i<imu->n;i++) adjustimu(opt,&imu->data[i]);
 }
 /* read imu measurement data-------------------------------------------------*/
-static int readimu(const char *file,int type)
+static int readappimu(const char *file,int type)
 {
     int nimu=0;
     switch (type) {
@@ -117,7 +117,7 @@ static int readimu(const char *file,int type)
     return nimu;
 }
 /* read position measurement data--------------------------------------------*/
-static int readpos(const char *file,int type)
+static int readapppos(const char *file,int type)
 {
     int npos=0;
     switch (type) {
@@ -159,8 +159,8 @@ int main(int argc, char **argv)
     getsysopts(&prcopt,&solopt,&filopt);
 
     /* read imu/pos data */
-    readimu(strpath[4],strfmt[4]);
-    readpos(strpath[3],strfmt[3]);
+    readappimu(strpath[4],strfmt[4]);
+    readapppos(strpath[3],strfmt[3]);
 
     /* set forward solution-binary file path */
     set_fwdtmp_file(NULL);

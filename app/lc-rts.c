@@ -1,10 +1,10 @@
 /*-----------------------------------------------------------------------------
-* tc-postpos.cc : ins-gnss tightly coupled pose-pos app.
+* lc-rts.c : ins-gnss loosely coupled RTS smoother app.
 *
 * version : $Revision: 1.1 $ $Date: 2008/09/05 01:32:44 $
-* history : 2019/04/14 1.0 new
+* history : 2018/09/20 1.0 new
 *----------------------------------------------------------------------------*/
-#include "carvig.h"
+#include <carvig.h>
 
 /* receiver options table ----------------------------------------------------*/
 #define TIMOPT  "0:gpst,1:utc,2:jst,3:tow"
@@ -81,6 +81,8 @@ static opt_t rcvopts[]={
 static prcopt_t prcopt;                 /* processing options */
 static solopt_t solopt={0};             /* solution options */
 static filopt_t filopt={""};            /* file options */
+static imu_t       imu={0};             /* imu measurement data */
+static gsof_data_t pos={0};             /* position measurement data */
 
 /* print usage ---------------------------------------------------------------*/
 static void printusage(void)
@@ -97,23 +99,51 @@ static void adj_imudata(const prcopt_t *opt,imu_t *imu)
     int i;
     for (i=0;i<imu->n;i++) adjustimu(opt,&imu->data[i]);
 }
-/* FB-SM main------------------------------------------------------------------
-* sysnopsis
-*     lc-fbsm [-p port] [-o file]
-*
-* description
-*     A command line version of RTS smoother for ins and gnss loosely coupled.
-*
-* option
-*     -p  port number for monitor stream
-*     -o  processing options file
-*
-* --------------------------------------------------------------------------*/
+/* read imu measurement data-------------------------------------------------*/
+static int readappimu(const char *file,int type)
+{
+    int nimu=0;
+    switch (type) {
+        case STRFMT_M39: readimub(file,&imu,prcopt.insopt.imudecfmt,
+                                  prcopt.insopt.imuformat,
+                                  prcopt.insopt.imucoors,
+                                  prcopt.insopt.imuvalfmt);
+    }
+    /* sort imu measurement data */
+    nimu=sortimudata(&imu);
+
+    /* adjust imu measurement data */
+    adj_imudata(&prcopt,&imu);
+    return nimu;
+}
+/* read position measurement data--------------------------------------------*/
+static int readapppos(const char *file,int type)
+{
+    int npos=0;
+    switch (type) {
+        case STRFMT_GSOF: readgsoff(file,&pos);
+    }
+    /* sort gsof measurement data */
+    npos=sortgsof(&pos);
+    return npos;
+}
+/* RTS main------------------------------------------------------------------
+ * sysnopsis
+ *     lc-rts [-p port] [-o file]
+ *
+ * description
+ *     A command line version of RTS smoother for ins and gnss loosely coupled.
+ *
+ * option
+ *     -p  port number for monitor stream
+ *     -o  processing options file
+ *
+ * --------------------------------------------------------------------------*/
 int main(int argc, char **argv)
 {
     int i,port=0;
-    char file[1024],*infile[1024];
-
+    char file[1024];
+    
     for (i=1;i<argc;i++) {
         if      (!strcmp(argv[i],"-p")&&i+1<argc) port=atoi(argv[++i]);
         else if (!strcmp(argv[i],"-o")&&i+1<argc) strcpy(file,argv[++i]);
@@ -127,27 +157,18 @@ int main(int argc, char **argv)
         fprintf(stderr,"no options file: %s. defaults used\n",file);
     }
     getsysopts(&prcopt,&solopt,&filopt);
-    for (i=0;i<16;i++) {
-        if (!(infile[i]=(char *)malloc(1024))) {
-            for (;i>=0;i--) free(infile[i]); return -1;
-        }
-    }
-    /* input files */
-    strcpy(infile[0],strpath[0]);
-    strcpy(infile[1],strpath[1]);
-    strcpy(infile[2],filopt.navfile);
-    strcpy(infile[3],filopt.bdsfile);
-    strcpy(infile[4],filopt.glofile);
-    strcpy(infile[5],filopt.mixfile);
-    strcpy(infile[6],strpath[4]);
 
-    /* tightly coupled */
-    if (!tcpostpos(&prcopt,&solopt,port,strpath[7],infile)) {
-        trace(2,"tightly coupled fail\n");
-        return 0;
-    }
-    for (i=0;i<16;i++) {
-        if (infile[i]) free(infile[i]);
-    }
+    /* read imu/pos data */
+    readappimu(strpath[4],strfmt[4]);
+    readapppos(strpath[3],strfmt[3]);
+
+    /* set forward solution-binary file path */
+    set_fwd_soltmp_file(NULL);
+
+    /* RTS */
+    lcrts(&imu,&pos,&prcopt,&solopt,port,strpath[7]);
+
+    freegsofdata(&pos);
+    freeimudata(&imu);
     return 0;
 }

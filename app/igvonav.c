@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * igvonav.cc : rtk-gps/gnss/vo receiver console app
+ * igvonav.c : rtk-gps/gnss/vo receiver console app
  *
  * notes   :
  *     current version does not support win32 without pthread library

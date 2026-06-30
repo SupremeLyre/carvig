@@ -77,22 +77,25 @@ add_subdirectory(src/relative-pose)
 # add libvisio
 add_subdirectory(src/libviso)
 
-add_executable(carvignav app/igvonav.cc)
+add_executable(carvignav app/igvonav.c)
 target_link_libraries(carvignav carvig pthread
                       ${OpenCV_LIBS}
                       five-point-nister
                       viso)
+set_target_properties(carvignav PROPERTIES LINKER_LANGUAGE CXX)
 
-add_executable(tc-postpos app/tc-postpos.cc)
+add_executable(tc-postpos app/tc-postpos.c)
 target_link_libraries(tc-postpos
                       carvig pthread
                       ${OpenCV_LIBS}
                       five-point-nister
                       viso)
+set_target_properties(tc-postpos PROPERTIES LINKER_LANGUAGE CXX)
 
-add_executable(rnx2rtkp app/rnx2rtkp.cc)
+add_executable(rnx2rtkp app/rnx2rtkp.c)
 target_link_libraries(rnx2rtkp
                       carvig pthread
                       ${OpenCV_LIBS}
                       five-point-nister
                       viso)
+set_target_properties(rnx2rtkp PROPERTIES LINKER_LANGUAGE CXX)
