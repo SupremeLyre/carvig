@@ -39,6 +39,9 @@ typedef unsigned __int64  uint64_t;
 #else
 #include <stdint.h>
 #endif
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
 
 #ifndef uchar
 typedef unsigned char uchar;
@@ -768,7 +771,7 @@ typedef struct feature {        /* feature data type */
     int descrlen;               /* length of descriptor */
     double descr[DESCR_MAXLEN]; /* descriptor */
     UT_hash_handle hh;          /* makes this structure hashable */
-} feat_data_t;
+} feat_data_t, feature;
 
 typedef struct  {               /* image data type */
     gtime_t time;               /* data time */
@@ -795,7 +798,7 @@ typedef struct trackd {         /* feature points track record */
     int uid;                    /* a unique identifier of this track */
     struct feature *data;       /* track feature data */
     double xyz[3];              /* feature position in ecef */
-} trackd_t;
+} trackd_t, trackd;
 
 typedef struct track {          /* store all feature track data type */
     int n,nmax;                 /* number and max number of track data */
@@ -803,7 +806,7 @@ typedef struct track {          /* store all feature track data type */
     int nless,lesstrack[MAXBUFF];
                                 /* new/updated/lost/exceed-max-track-length feature track index in `.data' */
     trackd_t *data;             /* track data */
-} track_t;
+} track_t, track;
 
 typedef struct {                /* bucketing parameters */
     int nmax;                   /* maximal number of features per bucket */
@@ -842,12 +845,12 @@ typedef struct match_point {    /* match feature point type */
     float uc,vc;                /* u,v-coordinates in current image */
     int ip,ic;                  /* feature id/feature index in precious/current image(for tracking) */
     int kltstat;                /* KLT track status (if KLT enable) */
-} match_point_t;
+} match_point_t, match_point;
 
 typedef struct match_set {      /* store all matched feature points */
     int n,nmax;                 /* max number and number of matched points */
     match_point_t *data;        /* matched points data */
-} match_set_t;
+} match_set_t, match_set;
 
 typedef struct {                /* match struct type */
     gtime_t time,pt;            /* current/precious match time */
@@ -939,7 +942,7 @@ typedef struct {            /* m39/image time tag */
     int sowc;               /* counts of sow increments */
     double sow,week;        /* GPS sow (s)/GPS week */
     gtime_t time,zda;       /* frame time */
-    timespec pps,ppsp,fts;  /* pps/frame time */
+    struct timespec pps,ppsp,fts;  /* pps/frame time */
 } m39_mix_t;
 
 typedef struct {            /* gnss positioning result for ins-gnss loosely coupled */
@@ -3298,8 +3301,10 @@ EXPORT unsigned char* pgmRead(FILE *fp,unsigned char *img,
 /* jpeg file read/write------------------------------------------------------*/
 EXPORT void savejpg(const char* filename, uchar* body, int h, int w, int ch,
                     int quality);
+#ifdef __cplusplus
 EXPORT int loadjpg(const char* filename, uchar* &body, int &h, int &w,
                    int &ch);
+#endif
 EXPORT int readjpeg(const char *imgfile,gtime_t time,img_t *img,int flag);
 
 /* klt track-----------------------------------------------------------------*/

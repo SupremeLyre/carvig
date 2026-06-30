@@ -504,9 +504,9 @@ static int decode_navatt(raw_t *raw)
     raw->sol.att[1]=I4(p+12)*1E-5*D2R;
     raw->sol.att[2]=I4(p+16)*1E-5*D2R;
 
-    raw->sol.qa[0]=float(SQR(U4(p+20)*1E-5*D2R));
-    raw->sol.qa[1]=float(SQR(U4(p+24)*1E-5*D2R));
-    raw->sol.qa[2]=float(SQR(U4(p+28)*1E-5*D2R));
+    raw->sol.qa[0]=(float)SQR(U4(p+20)*1E-5*D2R);
+    raw->sol.qa[1]=(float)SQR(U4(p+24)*1E-5*D2R);
+    raw->sol.qa[2]=(float)SQR(U4(p+28)*1E-5*D2R);
 
     return raw->sol.qa[0]&&
            raw->sol.qa[1]&&raw->sol.qa[2];
@@ -524,8 +524,8 @@ static int decode_navclk(raw_t *raw)
     raw->sol.dtr[0]=I4(p+4)*1E-9;
     raw->sol.dtrr  =I4(p+8)*1E-9;
 
-    raw->sol.qc[0]=float(SQR(U4(p+12)*1E-9 ));
-    raw->sol.qcr  =float(SQR(U4(p+16)*1E-12));
+    raw->sol.qc[0]=(float)SQR(U4(p+12)*1E-9 );
+    raw->sol.qcr  =(float)SQR(U4(p+16)*1E-12);
     return 1;
 }
 /* decode ubx-nav-gpst: gps time solution-------------------------------------*/
@@ -591,12 +591,12 @@ static int decode_navpvt(raw_t *raw)
     sn[8]=SQR(U4(p+44)*1E-3);           /* sigma of vertical */
     matmul33("NNT",Cne,sn,Cne,3,3,3,3,se);
 
-    raw->sol.qr[0]=float(se[0]); /* sigma of ecef-x */
-    raw->sol.qr[1]=float(se[4]); /* sigma of ecef-y */
-    raw->sol.qr[2]=float(se[8]); /* sigma of ecef-z */
+    raw->sol.qr[0]=(float)se[0]; /* sigma of ecef-x */
+    raw->sol.qr[1]=(float)se[4]; /* sigma of ecef-y */
+    raw->sol.qr[2]=(float)se[8]; /* sigma of ecef-z */
 
     for (i=0;i<3;i++) {
-        raw->sol.qv[i]=float(SQR(U4(p+68)*1E-3));
+        raw->sol.qv[i]=(float)SQR(U4(p+68)*1E-3);
     }
     raw->sol.ns=U1(p+23);
 
@@ -631,7 +631,7 @@ static int decode_navsol(raw_t *raw)
     /* ecef position */
     for (i=0;i<3;i++) {
         raw->sol.rr[i]=I4(p+12+4*i)*1E-2;
-        raw->sol.qr[i]=float(SQR(U4(p+24)*1E-2));
+        raw->sol.qr[i]=(float)SQR(U4(p+24)*1E-2);
     }
     /* ecef velocity */
     raw->sol.rr[3]=I4(p+28)*1E-2;
@@ -639,7 +639,7 @@ static int decode_navsol(raw_t *raw)
     raw->sol.rr[5]=I4(p+36)*1E-2;
 
     for (i=0;i<3;i++) {
-        raw->sol.qv[i]=float(SQR(U4(p+40)*1E-3));
+        raw->sol.qv[i]=(float)SQR(U4(p+40)*1E-3);
     }
     return 5;
 }

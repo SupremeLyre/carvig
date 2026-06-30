@@ -682,9 +682,12 @@ static void udion(rtk_t *rtk, double tt, double bl, const int *sat, int ns)
             /* elevation dependent factor of process noise */
             el=rtk->ssat[sat[i]-1].azel[1];
             fact=cos(el);
-            tc?
-                    ins->P[j+j*ins->nx]+=SQR(rtk->opt.prn[1]*bl/1E4*fact)*fabs(tt):
-                    rtk->P[j+j*rtk->nx]+=SQR(rtk->opt.prn[1]*bl/1E4*fact)*fabs(tt);
+            if (tc) {
+                ins->P[j+j*ins->nx]+=SQR(rtk->opt.prn[1]*bl/1E4*fact)*fabs(tt);
+            }
+            else {
+                rtk->P[j+j*rtk->nx]+=SQR(rtk->opt.prn[1]*bl/1E4*fact)*fabs(tt);
+            }
         }
     }
 }
@@ -936,9 +939,16 @@ static void udbias(rtk_t *rtk, double tt, const obsd_t *obs, const int *sat, con
     trace(3,"udbias  : tt=%.3f ns=%d\n",tt,ns);
 
     tc=rtk->opt.mode==PMODE_INS_TGNSS?1:0;
-    tc?x=rtk->ins.x:x=rtk->x;
-    tc?P=rtk->ins.P:P=rtk->P;
-    tc?nx=rtk->ins.nx:nx=rtk->nx;
+    if (tc) {
+        x=rtk->ins.x;
+        P=rtk->ins.P;
+        nx=rtk->ins.nx;
+    }
+    else {
+        x=rtk->x;
+        P=rtk->P;
+        nx=rtk->nx;
+    }
 
     for (i=0;i<ns;i++) {
 
@@ -1038,7 +1048,7 @@ static void udbias(rtk_t *rtk, double tt, const obsd_t *obs, const int *sat, con
         /* set initial states of phase-bias */
         for (i=0;i<ns;i++) {
 
-            tc?ib=xiBs((&rtk->opt.insopt),sat[i],f):ib=IB(sat[i],f,&rtk->opt);
+            ib=tc?xiBs((&rtk->opt.insopt),sat[i],f):IB(sat[i],f,&rtk->opt);
 
             if (bias[i]==0.0||x[ib]!=0.0) continue;
             tc?
@@ -1303,7 +1313,7 @@ static double prectrop(gtime_t time, const double *pos, int r,
     int i,flag=0;
 
     flag=opt->mode==PMODE_INS_TGNSS?1:0;
-    flag?i=xiTr((&opt->insopt),r):i=IT(r,opt);
+    i=flag?xiTr((&opt->insopt),r):IT(r,opt);
 
     /* wet mapping function */
     tropmapf(time,pos,azel,&m_w);
@@ -1447,7 +1457,7 @@ static int ddres(rtk_t *rtk, const nav_t *nav, const obsd_t *obs, double dt,cons
      * */
     flag=opt->mode==PMODE_INS_TGNSS&&insopt->tc==INSTC_RTK;
 
-    tc?nx=rtk->ins.nx:nx=rtk->nx;
+    nx=tc?rtk->ins.nx:rtk->nx;
     tc?matcpy(rr,re,1,3):matcpy(rr,x,1,3);
 
     bl=baseline(rr,rtk->rb,dr);
@@ -1687,7 +1697,7 @@ static int ddres(rtk_t *rtk, const nav_t *nav, const obsd_t *obs, double dt,cons
         }
     /* end of system loop */
 #if DETECT_OUTLIER
-    static const double r0=re_norm(0.95),r1=re_norm(0.99);
+    const double r0=re_norm(0.95),r1=re_norm(0.99);
     static double s0;
 
     /* detect outlier by L1/L2 phase double difference residual */
@@ -1984,10 +1994,10 @@ static int ddmat(rtk_t *rtk, double *D,ddsat_t *ddsat,const int *vflg,int nv,
             continue;
         }
         /* reference satellite index */
-        tc?k=xiBs(&rtk->opt.insopt,sat1,f):k=IB(sat1,f,&rtk->opt);
+        k=tc?xiBs(&rtk->opt.insopt,sat1,f):IB(sat1,f,&rtk->opt);
 
         /* other satellite index */
-        tc?j=xiBs(&rtk->opt.insopt,sat2,f):j=IB(sat2,f,&rtk->opt);
+        j=tc?xiBs(&rtk->opt.insopt,sat2,f):IB(sat2,f,&rtk->opt);
 
         /* fix flag */
         rtk->ssat[sat1-1].fix[f]=2;
@@ -2045,12 +2055,12 @@ static void restamb(rtk_t *rtk, const double *bias, ddsat_t *ddsat,
 
     tc=rtk->opt.mode==PMODE_INS_TGNSS;
 
-    tc?nx=rtk->ins.nx:nx=rtk->nx;
-    tc?na=rtk->ins.nb:na=rtk->na;
+    nx=tc?rtk->ins.nx:rtk->nx;
+    na=tc?rtk->ins.nb:rtk->na;
 
     /* initial estimated states */
-    for (i=0;i<nx;i++) tc?xa[i]=rtk->ins.x [i]:xa[i]=rtk->x [i];
-    for (i=0;i<na;i++) tc?xa[i]=rtk->ins.xb[i]:xa[i]=rtk->xa[i];
+    for (i=0;i<nx;i++) xa[i]=tc?rtk->ins.x [i]:rtk->x [i];
+    for (i=0;i<na;i++) xa[i]=tc?rtk->ins.xb[i]:rtk->xa[i];
 
     for (i=0;i<nb;i++) {
 
@@ -2115,11 +2125,11 @@ static void holdamb(rtk_t *rtk, insstate_t *ins, const double *xa,const ddsat_t 
 
     tc=rtk->opt.mode==PMODE_INS_TGNSS;
 
-    tc?nx=rtk->ins.nx:nx=rtk->nx;
-    tc?nb=rtk->ins.nx-rtk->ins.nb:nb=rtk->nx-rtk->na;
+    nx=tc?rtk->ins.nx:rtk->nx;
+    nb=tc?rtk->ins.nx-rtk->ins.nb:rtk->nx-rtk->na;
 
-    tc?x=rtk->ins.x:x=rtk->x;
-    tc?P=rtk->ins.P:P=rtk->P;
+    x=tc?rtk->ins.x:rtk->x;
+    P=tc?rtk->ins.P:rtk->P;
 
     v=mat(nb,1); H=zeros(nb,nx);
     r=mat(nb,1);
@@ -2281,7 +2291,7 @@ static int resamb_WL(rtk_t *rtk, double *Qy, double *y, int ny, int *index,const
         return 0;
     }
     tc=rtk->opt.mode==PMODE_INS_TGNSS;
-    tc?na=rtk->ins.nb:na=rtk->na;
+    na=tc?rtk->ins.nb:rtk->na;
 
     Qw=mat(ny,ny); wl=mat(ny,1); H=zeros(ny,ny); v=mat(ny,1);
     b=mat(ny,2); r=mat(ny,1);
@@ -2431,10 +2441,10 @@ static int resamb_LAMBDA(rtk_t *rtk, double *bias, double *xa, ddsat_t *ddsat,in
     /* tc-mode flag */
     tc=rtk->opt.mode==PMODE_INS_TGNSS;
 
-    tc?x=rtk->ins.x:x=rtk->x;
-    tc?P=rtk->ins.P:P=rtk->P;
-    tc?Pa=rtk->ins.Pb:Pa=rtk->Pa;
-    tc?xb=rtk->ins.xb:xb=rtk->xa;
+    x=tc?rtk->ins.x:rtk->x;
+    P=tc?rtk->ins.P:rtk->P;
+    Pa=tc?rtk->ins.Pb:rtk->Pa;
+    xb=tc?rtk->ins.xb:rtk->xa;
 
     /* tc-mode */
     if (opt->mode==PMODE_INS_TGNSS) {

@@ -249,7 +249,7 @@
 /*                                                                           */
 /*****************************************************************************/
 
-struct triangulateio {
+typedef struct triangulateio {
     float *pointlist;                                               /* In / out */
     float *pointattributelist;                                      /* In / out */
     int *pointmarkerlist;                                          /* In / out */
@@ -278,8 +278,7 @@ struct triangulateio {
     int *edgemarkerlist;            /* Not used with Voronoi diagram; out only */
     float *normlist;                /* Used only with Voronoi diagram; out only */
     int numberofedges;                                             /* Out only */
-};
+} triangulateio;
 
 void triangulate(char *,triangulateio *,triangulateio *,triangulateio *);
 void trifree(int *memptr);
-

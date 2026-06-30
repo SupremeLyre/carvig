@@ -36,7 +36,9 @@ include_directories(${PROJECT_SOURCE_DIR}
 )
 include_directories(${PYTHON_INCLUDE_DIRS})
 
-file(GLOB SRC_FILES "src/ins-gnss/*.cc" "src/ins-gnss/rcv/*.cc")
+file(GLOB SRC_FILES
+        "src/ins-gnss/*.c" "src/ins-gnss/*.cc"
+        "src/ins-gnss/rcv/*.c" "src/ins-gnss/rcv/*.cc")
 
 add_library(carvig ${SRC_FILES})
 target_link_libraries(carvig blas lapack z pthread

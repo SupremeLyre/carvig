@@ -174,7 +174,7 @@ static int findpose(posebuf_t *posebuf,gtime_t time)
     return -1;
 }
 /* initial covariance of estimate states-------------------------------------*/
-static void initP(double *P,int nx)
+static void initP_local(double *P,int nx)
 {
     setzero(P,nx,nx); int i; for (i=0;i<3;i++) P[i+i*nx]=VARPOSE;
 }
@@ -199,7 +199,7 @@ static int calibfilt(const insopt_t *opt,const solbuf_t *solbuf,
     x=zeros(1,3);
 
     matcpy(Cvb,C,3,3);
-    initP(P,3);
+    initP_local(P,3);
 
     for (i=0;i<solbuf->n;i++) {
 

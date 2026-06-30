@@ -148,7 +148,7 @@ extern int insinirtobs(rtksvr_t *svr,const obsd_t *obs,int n,const imud_t *imu)
 
     /* global variables for rtk positioning */
     static int first=1,i;
-    static prcopt_t popt=svr->rtk.opt;
+    static prcopt_t popt={0};
     static rtk_t rtk={0};
     static sol_t sols[MINSOL]={0};
 
@@ -160,6 +160,7 @@ extern int insinirtobs(rtksvr_t *svr,const obsd_t *obs,int n,const imud_t *imu)
     }
     /* initial gps position options */
     if (first) {
+        popt=svr->rtk.opt;
         initrtkpos(&rtk,&popt); first=0;
     }
     rtkpos(&rtk,obs,n,&svr->nav);
@@ -333,4 +334,3 @@ extern int insinitgiven(rtksvr_t *svr,const imud_t *imu)
     trace(3,"initial ins state ok\n");
     return 1;
 }
-

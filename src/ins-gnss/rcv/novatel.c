@@ -154,7 +154,7 @@ static int obsindex(obs_t *obs, gtime_t time, int sat)
     return i;
 }
 /* ura value (m) to ura index ------------------------------------------------*/
-static int uraindex(double value)
+static int uraindex_local(double value)
 {
     static const double ura_eph[]={
         2.4,3.4,4.85,6.85,9.65,13.65,24.0,48.0,96.0,192.0,384.0,768.0,1536.0,
@@ -1046,7 +1046,7 @@ static int decode_bdsephemerisb(raw_t *raw)
     eph.cic   =R8(p);   p+=8;
     eph.cis   =R8(p);
     eph.A     =sqrtA*sqrtA;
-    eph.sva   =uraindex(ura);
+    eph.sva   =uraindex_local(ura);
     
     if (raw->outtype) {
         msg=raw->msgtype+strlen(raw->msgtype);

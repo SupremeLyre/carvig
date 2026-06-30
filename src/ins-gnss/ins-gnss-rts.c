@@ -106,7 +106,8 @@ static int inputpos(const gsof_data_t *pos,gsof_t *gsofdata,gtime_t timu,
                     const prcopt_t* opt)
 {
     int flag=0,i;
-    static double ts=0.5/opt->insopt.hz,sowi,sowp;
+    double ts=0.5/opt->insopt.hz;
+    static double sowi,sowp;
 
     trace(3,"inputpos:\n");
 

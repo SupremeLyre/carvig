@@ -44,8 +44,8 @@ static double undecli(gtime_t time,const double *pos)
     static double ep[6]={0};
 
     time2epoch(time,ep);
-    get_field_components(&mag,&mag_model,pos[2],Units::kUnitsMeters,
-                         CoordinateSystem::kCoordSysGeodetic,
+    get_field_components(&mag,&mag_model,pos[2],kUnitsMeters,
+                         kCoordSysGeodetic,
                          pos[0],pos[1],
                          julday(ep[1],ep[2],ep[0]));
     return mag.d;

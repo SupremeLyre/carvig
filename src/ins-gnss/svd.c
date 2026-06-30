@@ -18,12 +18,16 @@ static int iminarg1,iminarg2;
 #define MIN(x,y)  ((x)<=(y)?(x):(y))
 
 #ifdef LAPACK
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 extern void dgesvd_(char* jobu, char* jobvt, int* m, int* n, double* a,
                    int* lda, double* s, double* u, int* ldu, double* vt, int* ldvt,
                    double* work, int* lwork, int* info);
+#ifdef __cplusplus
 };
+#endif
 #endif
 
 /* compute (a2 + b2)^1/2 without destructive underflow or overflow-----------*/
@@ -274,7 +278,7 @@ extern double** dmat(int m,int n)
 extern int svd(const double *A,int m,int n,double *U,double *W,double *V)
 {
 #ifdef LAPACK
-    register int info=-1,lwork=-1,lda=m,ldu=m,ldvt=n,i,j;
+    int info=-1,lwork=-1,lda=m,ldu=m,ldvt=n,i,j;
     double *s,*u,*vt,*a;
     double wkopt;
     double* work;

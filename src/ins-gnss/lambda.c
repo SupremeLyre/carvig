@@ -302,7 +302,7 @@ extern int bootstrap(int n,const double *a, const double *Q, double *F,double *P
     an=mat(n,1);
     ZT=mat(n,n);
 
-    for (i=0;i<n;i++) an[i]=a[i]-int(a[i]);
+    for (i=0;i<n;i++) an[i]=a[i]-(int)a[i];
 
     matmul("TN",n,1,n,1.0,Z,an,0.0,zhat); /* z=Z'*a */
 
@@ -324,7 +324,7 @@ extern int bootstrap(int n,const double *a, const double *Q, double *F,double *P
     }
     if (!(info=matinv(ZT,n))) {
         matmul("NN",n,1,n,1.0,ZT,af,0.0,F);
-        for (i=0;i<n;i++) F[i]+=int(a[i]);
+        for (i=0;i<n;i++) F[i]+=(int)a[i];
     }
     free(L); free(D); free(Z);
     free(af); free(afc);

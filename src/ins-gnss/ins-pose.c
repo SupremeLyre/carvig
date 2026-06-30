@@ -351,9 +351,9 @@ static void convar_tgt(const double *Cbe,const double *var,double *covtgt)
 /* check estimated states----------------------------------------------------*/
 static int chkest_state(const double *x,const insopt_t *opt)
 {
-    static int iba=xiBa(opt),nba=xnBa(opt);
-    static int ibg=xiBg(opt),nbg=xnBg(opt);
-    static int ivm=xiVm(opt),nvm=xnVm(opt);
+    int iba=xiBa(opt),nba=xnBa(opt);
+    int ibg=xiBg(opt),nbg=xnBg(opt);
+    int ivm=xiVm(opt),nvm=xnVm(opt);
     int flag=0;
 
     /* check estimated states */

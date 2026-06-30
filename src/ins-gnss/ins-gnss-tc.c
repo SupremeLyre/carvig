@@ -86,7 +86,7 @@ static int rebootc(insstate_t *ins,const prcopt_t *opt,const obsd_t *obs,int n,
                    const imud_t *imu,const nav_t *nav)
 {
     int i; double vr[3]={0};
-    static prcopt_t prcopt=*opt;
+    static prcopt_t prcopt={0};
     static sol_t sols[MAXSOLR]={0},sol0={0};
     static int first=1;
     static rtk_t rtk={0};
@@ -97,6 +97,7 @@ static int rebootc(insstate_t *ins,const prcopt_t *opt,const obsd_t *obs,int n,
 
     /* initial rtk position when first time  */
     if (first) {
+        prcopt=*opt;
         initrtkpos(&rtk,&prcopt); first=0;
     }
     rtkpos(&rtk,obs,n,nav);

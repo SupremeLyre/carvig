@@ -392,15 +392,19 @@ static const unsigned int tbl_CRC24Q[]={
 };
 /* function prototypes -------------------------------------------------------*/
 #ifdef LAPACK
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 extern int dgemm_(char *, char *, int *, int *, int *, double *, double *,
                   int *, double *, int *, double *, double *, int *);
 extern int dgetrf_(int *, int *, double *, int *, int *, int *);
 extern int dgetri_(int *, double *, int *, int *, double *, int *, int *);
 extern int dgetrs_(char *, int *, int *, double *, int *, int *, double *,
                    int *, int *);
+#ifdef __cplusplus
 };
+#endif
 #endif
 /* fatal error ---------------------------------------------------------------*/
 static void fatalerr(const char *format, ...)
@@ -4729,4 +4733,3 @@ extern int input_lexr(raw_t *raw, unsigned char data) {return 0;}
 extern int input_lexrf(raw_t *raw, FILE *fp) {return 0;}
 extern int gen_lexr(const char *msg, unsigned char *buff) {return 0;}
 #endif /* EXTLEX */
-

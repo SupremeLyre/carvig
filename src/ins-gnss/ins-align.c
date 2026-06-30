@@ -182,7 +182,7 @@ static int afnfilter(double *x,double *P,const double *Q,const double *R,
     return 1;
 }
 /* qbn=qpb-phi--------------------------------------------------------------*/
-static void qdelphi(quat_t *qpb,const double *phi)
+static void qdelphi_local(quat_t *qpb,const double *phi)
 {
     quat_t q,qpbc; quat_copy(&qpbc,qpb); rov2qua(phi,&q); quat_mul(qpb,&q,&qpbc);
 }
@@ -255,7 +255,7 @@ static int alignfn(insstate_t *ins,const imud_t *data,int n,const double *phi0,
         matcpy(xb,x,1,3);
 
         /* feedback attitude error */
-        qdelphi(&q,x); for (j=0;j<3;j++) x[j]=1E-15;
+        qdelphi_local(&q,x); for (j=0;j<3;j++) x[j]=1E-15;
         
         k++; /* index of time */
         quat2rpy(&q,rpy);
@@ -394,7 +394,7 @@ static int alignvn(insstate_t *ins,const imud_t *data,int n,const double *phi0,
         matcpy(xb,x,1,12);
 
         /* feedback attitude error and velocity */
-        for (j=0;j<2;j++) x[j]=-x[j]; qdelphi(&q,x);
+        for (j=0;j<2;j++) x[j]=-x[j]; qdelphi_local(&q,x);
         for (j=0;j<3;j++) x[j]=1E-15;
         for (j=3;j<6;j++) vn[j-3]-=x[j],x[j]=1E-15;
 #if 1

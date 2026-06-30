@@ -111,7 +111,8 @@ static int inputpos(const gsof_data_t *pos,gsof_t *gsofdata,gtime_t timu,
                     const prcopt_t* opt,int type)
 {
     int flag=0,i;
-    static double ts=0.5/opt->insopt.hz,sowi,sowp;
+    double ts=0.5/opt->insopt.hz;
+    static double sowi,sowp;
 
     trace(3,"inputpos:\n");
 
@@ -580,10 +581,10 @@ static void copy_ins_state(const insstate_t *pins,insstate_t *inss)
 /* combine forward/backward solutions  --------------------------------------*/
 static int combres(insstate_t *ins,const insopt_t *opt,insstate_t *inss)
 {
-    static int bszie=sizeof(gtime_t)+4*sizeof(int)+(15+ins->nx*ins->nx)*sizeof(double);
     ins_fsol_t fsol={0};
     double *dx,omg[3],fCbe[9],dCbe[9],*Ps,*Pf,*Pb,*dxs,factor=0.9999;
     int i,nx=ins->nx;
+    int bszie=sizeof(gtime_t)+4*sizeof(int)+(15+nx*nx)*sizeof(double);
 
     copy_ins_state(ins,inss);
 #if 0
@@ -806,5 +807,4 @@ extern int lcfbsm(const imu_t *imu,const gsof_data_t *pos,const prcopt_t *popt,
     if (file) strclose(&frst);
     return 0;
 }
-
 

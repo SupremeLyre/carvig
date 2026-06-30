@@ -1376,9 +1376,9 @@ static void *rtksvrthread(void *arg)
     imud_t *imuz=NULL;
     img_t **imgt=NULL;
 
-    static obs obss[MAXOBS]={{0}},obsd={0};
-    static imu imus={0};
-    static img imgs={0};
+    static struct obs obss[MAXOBS]={{0}},obsd={0};
+    static struct imu imus={0};
+    static struct img imgs={0};
     static pose_meas_t pose={0};
     static mag_t mag={0};
 
@@ -2317,4 +2317,3 @@ extern int carvigsvrmark(rtksvr_t *svr, const char *name, const char *comment)
     rtksvrunlock(svr);
     return 1;
 }
-

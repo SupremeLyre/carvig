@@ -49,7 +49,7 @@ static void adj_imudata(const prcopt_t *opt,imu_t *imu)
     for (i=0;i<imu->n;i++) adjustimu(opt,&imu->data[i]);
 }
 /* read imu measurement data-------------------------------------------------*/
-static int readimu(const char *file,int type,const prcopt_t *prcopt,imu_t *imu)
+static int readimu_post(const char *file,int type,const prcopt_t *prcopt,imu_t *imu)
 {
     int nimu=0;
     switch (type) {
@@ -140,7 +140,7 @@ static int init_ins(const imud_t *imu,const obsd_t *obs, int n, const nav_t *nav
 {
     /* global variables for rtk positioning */
     static int first=1,i,minsol=5;
-    static prcopt_t popt=*prcopt;
+    static prcopt_t popt={0};
     static rtk_t rtk={0};
     static sol_t sols[5]={0};
     double vr[3]={0};
@@ -151,6 +151,7 @@ static int init_ins(const imud_t *imu,const obsd_t *obs, int n, const nav_t *nav
     }
     /* initial gps position options */
     if (first) {
+        popt=*prcopt;
         initrtkpos(&rtk,&popt); first=0;
     }
     rtkpos(&rtk,obs,n,nav);
@@ -503,7 +504,7 @@ extern int tcpostpos(prcopt_t *popt, const solopt_t *solopt, int port,
         goto exit;
     }
     /* read imu data */
-    if (!(nimu=readimu(infiles[6],STRFMT_M39,popt,&imus))) {
+    if (!(nimu=readimu_post(infiles[6],STRFMT_M39,popt,&imus))) {
         trace(2,"read imu data fail\n");
         flag=0;
         goto exit;

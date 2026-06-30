@@ -50,7 +50,7 @@ static const double ura_eph[]={
     3072.0,6144.0,0.0
 };
 /* ura value (m) to ura index ------------------------------------------------*/
-static int uraindex(double value)
+static int uraindex_local(double value)
 {
     int i;
     for (i=0;i<15;i++) if (ura_eph[i]>=value) break;
@@ -206,7 +206,7 @@ static int decode_gpsephem(int sat, raw_t *raw)
     eph.f2     =R4(&puiTmp[114]) * 1e+3;
     eph.f1     =R4(&puiTmp[118]);
     eph.f0     =R4(&puiTmp[122]) * 1e-3;
-    eph.sva    =uraindex(I2(&puiTmp[126]));
+    eph.sva    =uraindex_local(I2(&puiTmp[126]));
     eph.iode   =I2(&puiTmp[128]);
     eph.iodc   =I2(&puiTmp[130]);
     eph.code   =I2(&puiTmp[132]);
