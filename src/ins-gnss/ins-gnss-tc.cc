@@ -37,9 +37,14 @@ static void sol2vel(const sol_t *sol1,const sol_t *sol2,double *v)
 static int chkpcov(int nx,const insopt_t *opt,double *P)
 {
     int i; double var=0.0;
+    if (!P) return 0;
     for (i=xiP(opt);i<xiP(opt)+3;i++) var+=SQRT(P[i+i*nx]);
 
-    if ((var/3)>MAXVAR) if (P) getP0(opt,P);
+    if ((var/3)>MAXVAR) {
+        getP0(opt,P);
+        return 1;
+    }
+    return 0;
 }
 /* check imu body velocity---------------------------------------------------*/
 static int chkvb(const insstate_t *ins)
@@ -260,4 +265,3 @@ extern int tcigpos(const prcopt_t *opt,const obsd_t *obs,int n,const nav_t *nav,
 exit:
     return info;
 }
-

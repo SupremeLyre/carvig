@@ -494,15 +494,19 @@ static void readant(vt_t *vt, prcopt_t *opt, nav_t *nav)
 static int readnavf(nav_t *nav, const char *file)
 {
     gtime_t ts = {0}, te = {0};
+    int stat;
 
     /* read rinex obs and nav file */
-    if (readrnxt(file, 0, ts, te, 0.0, "", NULL, nav, NULL) < 0)
+    if ((stat = readrnxt(file, 0, ts, te, 0.0, "", NULL, nav, NULL)) < 0)
     {
         trace(1, "insufficient memory\n");
         return 0;
     }
+    if (!stat)
+        return 0;
     /* delete duplicated ephemeris */
     uniqnav(nav);
+    return 1;
 }
 /* start rtk server ----------------------------------------------------------*/
 static int startsvr(vt_t *vt)
@@ -574,12 +578,12 @@ static int startsvr(vt_t *vt)
         readdcb(filopt.dcb, &svr.nav, sta);
     }
     /* read navigation data file */
-    if (filopt.navfile)
+    if (*filopt.navfile)
     {
         readnavf(&svr.nav, filopt.navfile);
     }
     /* read navigation data file */
-    if (filopt.bdsfile)
+    if (*filopt.bdsfile)
     {
         readnavf(&svr.nav, filopt.bdsfile);
     }

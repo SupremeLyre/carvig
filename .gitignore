@@ -44,3 +44,7 @@ src/ins-gnss/visio.cc~
 src/msckf-python/__pycache__/
 test/test_ins_gnss_vo_sim.cc~
 /build/
+*.rslt
+*.trace
+/bin/
+/lib/
