@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * pgm.cc
+ * pgm.c
  *
  * Various routines to manipulate PGM files.
  *----------------------------------------------------------------------------*/
@@ -238,5 +238,4 @@ extern void ppmWriteFileRGB(char *fname, unsigned char *redimg,
     /* Close file */
     fclose(fp);
 }
-
 

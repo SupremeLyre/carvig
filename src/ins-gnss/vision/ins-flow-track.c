@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * ins-flow-track.cc : klt feature point track functions
+ * ins-flow-track.c : klt feature point track functions
  *
  * reference :
  *    [1] P.D.Groves, Principles of GNSS, Intertial, and Multisensor Integrated
@@ -564,7 +564,7 @@ static void klt_UpdateTCBorder(tracking_context_t* tc)
     register float val;
     register int pyramid_gauss_hw;
     register int smooth_gauss_hw;
-    register int gauss_width, gaussderiv_width;
+    int gauss_width, gaussderiv_width;
     register int num_levels=tc->trackopt.kltopt.nPyramidLevels;
     register int n_invalid_pixels;
     register int window_hw;

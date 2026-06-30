@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
- * ins-gnss-vo-postpos.cc : ins-gnss-vo coupled post-processing common functions
+ * ins-gnss-vo-postpos.c : ins-gnss-vo coupled post-processing common functions
  *
  * reference :
  *    [1] P.D.Groves, Principles of GNSS, Intertial, and Multisensor Integrated

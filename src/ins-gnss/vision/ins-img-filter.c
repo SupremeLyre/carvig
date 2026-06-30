@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * ins-img-filter.cc : image filter functions
+ * ins-img-filter.c : image filter functions
  *
  * reference :
  *    [1] Kitt B , Geiger A , Lategahn H . Visual odometry based on stereo image

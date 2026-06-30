@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------
-* vo-stereo.cc : stereo camera estimate motion functions
+* vo-stereo.c : stereo camera estimate motion functions
 *
 * version : $Revision: 1.1 $ $Date: 2008/09/05 01:32:44 $
 * history : 2017/12/27 1.0 new

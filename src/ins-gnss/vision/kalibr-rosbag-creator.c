@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
-* kalibr-rosbag-creator.cc : create imu-cam rosbag for Kalibr calibrator
+* kalibr-rosbag-creator.c : create imu-cam rosbag for Kalibr calibrator
 *
 * reference :
 *    [1] https://github.com/ethz-asl/kalibr/wiki/bag-format

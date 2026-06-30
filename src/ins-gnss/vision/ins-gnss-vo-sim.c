@@ -1,5 +1,5 @@
 /*--------------------------------------------------------------------------------
- * ins-gnss-vo-sim.cc : ins-gnss-vo multisensor data simulator
+ * ins-gnss-vo-sim.c : ins-gnss-vo multisensor data simulator
  *
  * reference :
  *    [01] P.D.Groves, Principles of GNSS, Intertial, and Multisensor Integrated

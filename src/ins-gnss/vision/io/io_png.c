@@ -1,5 +1,5 @@
 /**--------------------------------------------------------------------------
- *  @file io_png.cc
+ *  @file io_png.c
  *  @brief PNG read/write simplified interface
  *
  *  This is a front-end to libpng, with routines to:

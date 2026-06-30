@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------
-* ins-vo-mono.cc : monocular camera estimate motion functions
+* ins-vo-mono.c : monocular camera estimate motion functions
 *
 * version : $Revision: 1.1 $ $Date: 2008/09/05 01:32:44 $
 * history : 2018/05/10 1.0 new
@@ -665,5 +665,4 @@ extern int triangulate3D(const double *C21,const double *t12_1,
     freeframe(&frame);
     return flag&&X[2]>0.0;
 }
-
 

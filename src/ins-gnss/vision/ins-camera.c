@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
-* ins-camera.cc : camera common functions
+* ins-camera.c : camera common functions
 *
 * reference :
 *    [1] P.D.Groves, Principles of GNSS, Intertial, and Multisensor Integrated

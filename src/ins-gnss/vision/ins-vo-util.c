@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------
-* ins-vo-util.cc : visual odometry util functions
+* ins-vo-util.c : visual odometry util functions
 *
 * reference :
 *    [1] P.D.Groves, Principles of GNSS, Intertial, and Multisensor Integrated
@@ -96,7 +96,6 @@ extern void tf2rt(const double *T,double *R,double *t)
         t[0]=T[12]; t[1]=T[13]; t[2]=T[14];
     }
 }
-
 
 
 
