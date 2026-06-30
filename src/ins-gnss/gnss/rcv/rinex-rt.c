@@ -25,7 +25,6 @@
 #include <carvig.h>
 
 /* constants/macros ----------------------------------------------------------*/
-#define NUMSYS      6                   /* number of systems */
 #define MAXRNXLEN   (16*MAXOBSTYPE+4)   /* max rinex record length */
 #define MAXPOSHEAD  1024                /* max head line position */
 #define MINFREQ_GLO -7                  /* min frequency number glonass */
@@ -39,15 +38,6 @@ static const char syscodes[]="GREJSCI"; /* satellite system codes */
 static const char obscodes[]="CLDS";    /* obs type codes */
 static const char frqcodes[]="1256789"; /* frequency codes */
 
-/* set string without tail space ---------------------------------------------*/
-static void setstr(char *dst, const char *src, int n)
-{
-    char *p=dst;
-    const char *q=src;
-    while (*q&&q<src+n) *p++=*q++;
-    *p--='\0';
-    while (p>=dst&&*p==' ') *p--='\0';
-}
 /* adjust time considering week handover -------------------------------------*/
 static gtime_t adjweek(gtime_t t, gtime_t t0)
 {
@@ -114,7 +104,7 @@ static void decode_obsh(char *buff,int *tsys,char tobs[][MAXOBSTYPE][4],
         if (sta) setstr(sta->name,buff,60);
     }
     else if (strstr(label,"MARKER NUMBER"       )) { /* opt */
-        if (sta) setstr(sta->marker,buff,20);
+        if (sta) setstr(sta->markerno,buff,20);
     }
     else if (strstr(label,"MARKER TYPE"         )) ; /* ver.3 */
     else if (strstr(label,"OBSERVER / AGENCY"   )) ;
@@ -203,10 +193,10 @@ static void decode_obsh(char *buff,int *tsys,char tobs[][MAXOBSTYPE][4],
     else if (strstr(label,"GLONASS COD/PHS/BIS" )) { /* ver.3.02 */
         if (nav) {
             for (i=0,p=buff;i<4;i++,p+=13) {
-                if      (strncmp(p+1,"C1C",3)) nav->glo_cpbias[0]=str2num(p,5,8);
-                else if (strncmp(p+1,"C1P",3)) nav->glo_cpbias[1]=str2num(p,5,8);
-                else if (strncmp(p+1,"C2C",3)) nav->glo_cpbias[2]=str2num(p,5,8);
-                else if (strncmp(p+1,"C2P",3)) nav->glo_cpbias[3]=str2num(p,5,8);
+                if      (!strncmp(p+1,"C1C",3)) nav->glo_cpbias[0]=str2num(p,5,8);
+                else if (!strncmp(p+1,"C1P",3)) nav->glo_cpbias[1]=str2num(p,5,8);
+                else if (!strncmp(p+1,"C2C",3)) nav->glo_cpbias[2]=str2num(p,5,8);
+                else if (!strncmp(p+1,"C2P",3)) nav->glo_cpbias[3]=str2num(p,5,8);
             }
         }
     }
@@ -266,6 +256,7 @@ static int decode_obsdata(char *buff, int mask,sigind_t *index, obsd_t *obs)
         case SYS_QZS: ind=index+3; break;
         case SYS_SBS: ind=index+4; break;
         case SYS_CMP: ind=index+5; break;
+        case SYS_IRN: ind=index+6; break;
         default:      ind=index  ; break;
     }
     for (i=0,j=3;i<ind->n;i++,j+=16) {
@@ -295,7 +286,7 @@ static int decode_obsdata(char *buff, int mask,sigind_t *index, obsd_t *obs)
             case 0: obs->P[p[i]]=val[i]; obs->code[p[i]]=ind->code[i]; break;
             case 1: obs->L[p[i]]=val[i]; obs->LLI [p[i]]=lli[i];       break;
             case 2: obs->D[p[i]]=(float)val[i];                        break;
-            case 3: obs->SNR[p[i]]=(unsigned char)(val[i]*4.0+0.5);    break;
+            case 3: obs->SNR[p[i]]=(float)val[i];                      break;
         }
     }
     return 1;
@@ -310,16 +301,12 @@ static void sigindex(int sys, const char *opt,char tobs[MAXOBSTYPE][4],
     int i,j,k,n;
 
     for (i=n=0;*tobs[i];i++,n++) {
-        ind->code[i]=obs2code(tobs[i]+1,ind->frq+i);
+        ind->code[i]=obs2code(tobs[i]+1,NULL);
+        ind->idx[i]=code2idx(sys,ind->code[i]);
         ind->type[i]=(p=strchr(obscodes,tobs[i][0]))?(int)(p-obscodes):0;
         ind->pri[i]=getcodepri(sys,ind->code[i],opt);
         ind->pos[i]=-1;
 
-        /* frequency index for beidou */
-        if (sys==SYS_CMP) {
-            if      (ind->frq[i]==5) ind->frq[i]=2; /* B2 */
-            else if (ind->frq[i]==4) ind->frq[i]=3; /* B3 */
-        }
     }
     /* parse phase shift options */
     switch (sys) {
@@ -343,7 +330,7 @@ static void sigindex(int sys, const char *opt,char tobs[MAXOBSTYPE][4],
     /* assign index for highest priority code */
     for (i=0;i<NFREQ;i++) {
         for (j=0,k=-1;j<n;j++) {
-            if (ind->frq[j]==i+1&&ind->pri[j]&&(k<0||ind->pri[j]>ind->pri[k])) {
+            if (ind->idx[j]==i&&ind->pri[j]&&(k<0||ind->pri[j]>ind->pri[k])) {
                 k=j;
             }
         }

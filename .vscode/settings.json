@@ -9,7 +9,7 @@
     "cmake.debugConfig": {
         "args": [
             "-o",
-            "/home/supremelyre/data/projects/carvig/src/ins-gnss/app/carvig-tc.conf",
+            "/home/supremelyre/data/projects/carvig/app/carvig-tc.conf",
             "-m",
             "52090",
             "-nc",

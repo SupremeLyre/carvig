@@ -1378,7 +1378,7 @@ static int decode_solstat(char *buff, solstat_t *stat)
     stat->resp =(float)resp;
     stat->resc =(float)resc;
     stat->flag =(unsigned char)((vsat<<5)+(slip<<3)+fix);
-    stat->snr  =(unsigned char)(snr*4.0+0.5);
+    stat->snr  =(float)snr;
     stat->lock =(unsigned short)lock;
     stat->outc =(unsigned short)outc;
     stat->slipc=(unsigned short)slipc;
@@ -1909,7 +1909,7 @@ extern int outnmea_gsv(unsigned char *buff, const sol_t *sol,
                 if (satsys(sats[k],&prn)==SYS_SBS) prn+=33-MINPRNSBS;
                 az =ssat[sats[k]-1].azel[0]*R2D; if (az<0.0) az+=360.0;
                 el =ssat[sats[k]-1].azel[1]*R2D;
-                snr=ssat[sats[k]-1].snr[0]*0.25;
+                snr=ssat[sats[k]-1].snr[0];
                 p+=sprintf(p,",%02d,%02.0f,%03.0f,%02.0f",prn,el,az,snr);
             }
             else p+=sprintf(p,",,,,");
@@ -1934,7 +1934,7 @@ extern int outnmea_gsv(unsigned char *buff, const sol_t *sol,
                 satsys(sats[k],&prn); prn+=64; /* 65-99 */
                 az =ssat[sats[k]-1].azel[0]*R2D; if (az<0.0) az+=360.0;
                 el =ssat[sats[k]-1].azel[1]*R2D;
-                snr=ssat[sats[k]-1].snr[0]*0.25;
+                snr=ssat[sats[k]-1].snr[0];
                 p+=sprintf(p,",%02d,%02.0f,%03.0f,%02.0f",prn,el,az,snr);
             }
             else p+=sprintf(p,",,,,");
@@ -1959,7 +1959,7 @@ extern int outnmea_gsv(unsigned char *buff, const sol_t *sol,
                 satsys(sats[k],&prn); /* 1-36 */
                 az =ssat[sats[k]-1].azel[0]*R2D; if (az<0.0) az+=360.0;
                 el =ssat[sats[k]-1].azel[1]*R2D;
-                snr=ssat[sats[k]-1].snr[0]*0.25;
+                snr=ssat[sats[k]-1].snr[0];
                 p+=sprintf(p,",%02d,%02.0f,%03.0f,%02.0f",prn,el,az,snr);
             }
             else p+=sprintf(p,",,,,");

@@ -240,8 +240,8 @@ static void gen_obs_gps(rtcm_t *rtcm, const obsd_t *data, int *code1, int *pr1,
     
     if (lock1) *lock1=to_lock(lt1);
     if (lock2) *lock2=to_lock(lt2);
-    if (cnr1 ) *cnr1=data->SNR[0];
-    if (cnr2 ) *cnr2=data->SNR[1];
+    if (cnr1 ) *cnr1=ROUND(data->SNR[0]/0.25);
+    if (cnr2 ) *cnr2=ROUND(data->SNR[1]/0.25);
     if (code1) *code1=to_code1_gps(data->code[0]);
     if (code2) *code2=to_code2_gps(data->code[1]);
 }
@@ -289,8 +289,8 @@ static void gen_obs_glo(rtcm_t *rtcm, const obsd_t *data, int fcn, int *code1,
     
     if (lock1) *lock1=to_lock(lt1);
     if (lock2) *lock2=to_lock(lt2);
-    if (cnr1 ) *cnr1=data->SNR[0];
-    if (cnr2 ) *cnr2=data->SNR[1];
+    if (cnr1 ) *cnr1=ROUND(data->SNR[0]/0.25);
+    if (cnr2 ) *cnr2=ROUND(data->SNR[1]/0.25);
     if (code1) *code1=to_code1_glo(data->code[0]);
     if (code2) *code2=to_code2_glo(data->code[1]);
 }
@@ -1856,7 +1856,7 @@ static void gen_msm_sig(rtcm_t *rtcm, int sys, int nsat, int nsig, int ncell,
             if (rate &&rate_s !=0.0) rate [cell-1]=rate_s;
             if (lock) lock[cell-1]=lt;
             if (half) half[cell-1]=(data->LLI[j]&2)?1:0;
-            if (cnr ) cnr [cell-1]=(float)(data->SNR[j]*0.25);
+            if (cnr ) cnr [cell-1]=data->SNR[j];
         }
     }
 }

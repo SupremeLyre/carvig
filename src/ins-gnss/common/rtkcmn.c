@@ -284,9 +284,11 @@ static char *obscodes[]={       /* observation code strings */
     ""  ,"1C","1P","1W","1Y", "1M","1N","1S","1L","1E", /*  0- 9 */
     "1A","1B","1X","1Z","2C", "2D","2S","2L","2X","2P", /* 10-19 */
     "2W","2Y","2M","2N","5I", "5Q","5X","7I","7Q","7X", /* 20-29 */
-    "6A","6B","6C","6X","6Z", "6S","6L","8L","8Q","8X", /* 30-39 */
+    "6A","6B","6C","6X","6Z", "6S","6L","8I","8Q","8X", /* 30-39 */
     "2I","2Q","6I","6Q","3I", "3Q","3X","1I","1Q","5A", /* 40-49 */
-    "5B","5C","9A","9B","9C", "9X",""  ,""  ,""  ,""    /* 50-59 */
+    "5B","5C","9A","9B","9C", "9X","1D","5D","5P","5Z", /* 50-59 */
+    "6E","7D","7P","7Z","8D", "8P","4A","4B","4X","6D", /* 60-69 */
+    "6P"
 };
 static unsigned char obsfreqs[]={
     /* 1:L1/E1, 2:L2/B1, 3:L5/E5a/L3, 4:L6/LEX/B3, 5:E5b/B2, 6:E5(a+b), 7:S */
@@ -295,18 +297,20 @@ static unsigned char obsfreqs[]={
     2, 2, 2, 2, 3,  3, 3, 5, 5, 5, /* 20-29 */
     4, 4, 4, 4, 4,  4, 4, 6, 6, 6, /* 30-39 */
     2, 2, 4, 4, 3,  3, 3, 1, 1, 3, /* 40-49 */
-    3, 3, 7, 7, 7,  7, 0, 0, 0, 0  /* 50-59 */
+    3, 3, 7, 7, 7,  7, 1, 3, 3, 3, /* 50-59 */
+    4, 5, 5, 5, 6,  6, 1, 1, 1, 4, /* 60-69 */
+    4
 };
 static char codepris[7][MAXFREQ][16]={  /* code priority table */
    
-   /* L1/E1      L2/B1        L5/E5a/L3 L6/LEX/B3 E5b/B2    E5(a+b)  S */
-    {"CPYWMNSL","PYWCMNDSLX","IQX"     ,""       ,""       ,""      ,""    }, /* GPS */
-    {"PC"      ,"PC"        ,"IQX"     ,""       ,""       ,""      ,""    }, /* GLO */
-    {"CABXZ"   ,""          ,"IQX"     ,"ABCXZ"  ,"IQX"    ,"IQX"   ,""    }, /* GAL */
-    {"CSLXZ"   ,"SLX"       ,"IQX"     ,"SLX"    ,""       ,""      ,""    }, /* QZS */
-    {"C"       ,""          ,"IQX"     ,""       ,""       ,""      ,""    }, /* SBS */
-    {"IQX"     ,"IQX"       ,"IQX"     ,"IQX"    ,"IQX"    ,""      ,""    }, /* BDS */
-    {""        ,""          ,"ABCX"    ,""       ,""       ,""      ,"ABCX"}  /* IRN */
+   /* L1/E1/B1  L2/E5b/B2b  L5/E5a/B2a L6/LEX/B3 E5(a+b) */
+    {"CPYWMNSLX","CPYWMNDLSX","IQX"     ,""       ,""        ,""    ,""}, /* GPS */
+    {"CPABX"   ,"CPABX"     ,"IQX"     ,""       ,""        ,""    ,""}, /* GLO */
+    {"CABXZ"   ,"XIQ"       ,"XIQ"     ,"ABCXZ"  ,"IQX"     ,""    ,""}, /* GAL */
+    {"CLSXZBE" ,"LSX"       ,"IQXDPZ"  ,"LSXEZ"  ,""        ,""    ,""}, /* QZS */
+    {"C"       ,"IQX"       ,""        ,""       ,""        ,""    ,""}, /* SBS */
+    {"IQX"     ,"IQXDPZ"    ,"DPX"     ,"IQXDPZA","DPXSLZAN","DPX",""}, /* BDS */
+    {"ABCX"    ,"ABCX"      ,"DPX"     ,""       ,""        ,""    ,""}  /* IRN */
 };
 static fatalfunc_t *fatalfunc=NULL; /* fatal callback function */
 
@@ -642,6 +646,65 @@ extern char *code2obs(unsigned char code, int *freq)
     if (freq) *freq=obsfreqs[code];
     return obscodes[code];
 }
+/* system and obs code to frequency index -----------------------------------*/
+extern int code2idx(int sys, unsigned char code)
+{
+    const char *obs=code2obs(code,NULL);
+
+    switch (sys) {
+        case SYS_GPS:
+            if (obs[0]=='1') return 0;
+            if (obs[0]=='2') return 1;
+            if (obs[0]=='5') return 2;
+            break;
+        case SYS_GLO:
+            if (obs[0]=='1'||obs[0]=='4') return 0;
+            if (obs[0]=='2'||obs[0]=='6') return 1;
+            if (obs[0]=='3') return 2;
+            break;
+        case SYS_GAL:
+            if (obs[0]=='1') return 0;
+            if (obs[0]=='7') return 1;
+            if (obs[0]=='5') return 2;
+            if (obs[0]=='6') return 3;
+            if (obs[0]=='8') return 4;
+            break;
+        case SYS_QZS:
+            if (obs[0]=='1') return 0;
+            if (obs[0]=='2') return 1;
+            if (obs[0]=='5') return 2;
+            if (obs[0]=='6') return 3;
+            break;
+        case SYS_SBS:
+            if (obs[0]=='1') return 0;
+            if (obs[0]=='5') return 1;
+            break;
+        case SYS_CMP:
+            if (obs[0]=='2') return 0;
+            if (obs[0]=='7') return 1;
+            if (obs[0]=='5') return 2;
+            if (obs[0]=='6') return 3;
+            if (obs[0]=='1') return 4;
+            if (obs[0]=='8') return 5;
+            break;
+        case SYS_IRN:
+            if (obs[0]=='5') return 0;
+            if (obs[0]=='9') return 1;
+            if (obs[0]=='1') return 2;
+            break;
+    }
+    return -1;
+}
+/* set string without tail spaces -------------------------------------------*/
+extern void setstr(char *dst, const char *src, int n)
+{
+    char *p=dst;
+    const char *q=src;
+
+    while (*q&&q<src+n) *p++=*q++;
+    *p--='\0';
+    while (p>=dst&&*p==' ') *p--='\0';
+}
 /* set code priority -----------------------------------------------------------
 * set code priority for multiple codes in a frequency
 * args   : int    sys     I     system (or of SYS_???)
@@ -686,7 +749,8 @@ extern int getcodepri(int sys, unsigned char code, const char *opt)
         case SYS_IRN: i=6; optstr="-IL%2s"; break;
         default: return 0;
     }
-    obs=code2obs(code,&j);
+    if ((j=code2idx(sys,code))<0) return 0;
+    obs=code2obs(code,NULL);
     
     /* parse code options */
     for (p=opt;p&&(p=strchr(p,'-'));p++) {
@@ -694,7 +758,7 @@ extern int getcodepri(int sys, unsigned char code, const char *opt)
         return str[1]==obs[1]?15:0;
     }
     /* search code priority */
-    return (p=strchr(codepris[i][j-1],obs[1]))?14-(int)(p-codepris[i][j-1]):0;
+    return (p=strchr(codepris[i][j],obs[1]))?14-(int)(p-codepris[i][j]):0;
 }
 /* system code to index-----------------------------------------------------*/
 static int sys2ind(int sys)
@@ -718,7 +782,7 @@ static int getposind(const prcopt_t *opt,const obsd_t *obs,int *i)
         if ((ind=sys2ind(satsys(obs->sat,NULL)))<0) return 0;
         ps=&opt->sind[obs->rcv-1][ind];
         for (n=0,p=-1;n<ps->n;n++) {
-            if (ps->frq[n]==*i+1&&ps->pri[n]&&(p<0||ps->pri[n]>ps->pri[p])
+            if (ps->idx[n]==*i&&ps->pri[n]&&(p<0||ps->pri[n]>ps->pri[p])
                 &&obs->L[ps->pos[n]]&&obs->P[ps->pos[n]]) p=n;
         }
         if (p<0) return 0;
@@ -1902,6 +1966,13 @@ extern void time2epoch(gtime_t t, double *ep)
     }
     ep[0]=1970+days/1461*4+mon/12; ep[1]=mon%12+1; ep[2]=day+1;
     ep[3]=sec/3600; ep[4]=sec%3600/60; ep[5]=sec%60+t.sec;
+}
+/* same as time2epoch but output limited to n decimals for formatted output ---*/
+extern void time2epoch_n(gtime_t t, double *ep, int n)
+{
+    if (n<0) n=0; else if (n>12) n=12;
+    if (1.0-t.sec<0.5/pow(10.0,n)) {t.time++; t.sec=0.0;}
+    time2epoch(t,ep);
 }
 /* gps time to time ------------------------------------------------------------
 * convert week and tow in gps time to gtime_t struct
@@ -3256,7 +3327,7 @@ extern void uniqnav(nav_t *nav)
             for (ps=&nav->sind[rcv][ind],j=0;j<ps->n&&j<NFREQ+NEXOBS;j++) {
                 if (ps->pos[j]< NFREQ       ) continue;
                 if (ps->pos[j]>=NFREQ+NEXOBS) continue;
-                nav->lam[i][ps->pos[j]+NEXOBS*rcv]=satwavelen(i+1,ps->frq[j]-1,nav);
+                nav->lam[i][ps->pos[j]+NEXOBS*rcv]=satwavelen(i+1,ps->idx[j],nav);
             }
         }
     }
@@ -3566,6 +3637,10 @@ extern void tracelevel(int level)
 {
     level_trace=level;
 }
+extern int gettracelevel(void)
+{
+    return level_trace;
+}
 extern void trace(int level, const char *format, ...)
 {
     va_list ap;
@@ -3652,7 +3727,7 @@ extern void traceobs(int level, const obsd_t *obs, int n)
                         " %13.3f %3d %3d %3d %3d %3.1f %3.1f\n",
               i+1,str,id,obs[i].sat,obs[i].rcv,obs[i].L[0],obs[i].L[1],obs[i].P[0],
               obs[i].P[1],obs[i].LLI[0],obs[i].LLI[1],obs[i].code[0],
-              obs[i].code[1],obs[i].SNR[0]*0.25,obs[i].SNR[1]*0.25);
+              obs[i].code[1],obs[i].SNR[0],obs[i].SNR[1]);
     }
     fflush(fp_trace);
 }
@@ -3789,6 +3864,7 @@ extern void tracesync(rtksvr_t *svr)
 extern void traceopen(const char *file) {}
 extern void traceclose(void) {}
 extern void tracelevel(int level) {}
+extern int gettracelevel(void) {return 0;}
 extern void trace   (int level, const char *format, ...) {}
 extern void tracet  (int level, const char *format, ...) {}
 extern void tracemat(int level, const double *A, int n, int m, int p, int q) {}

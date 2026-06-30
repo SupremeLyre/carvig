@@ -73,30 +73,30 @@ static const int navsys[]={     /* system codes */
     SYS_GPS,SYS_GLO,SYS_GAL,SYS_QZS,SYS_SBS,SYS_CMP,SYS_IRN,0
 };
 /* convert rinex obs type ver.3 -> ver.2 -------------------------------------*/
-static void convcode(double ver, int sys, char *type)
+static void convcode(int rnxver, int sys, char *type)
 {
-    if (ver>=2.12&&(sys==SYS_GPS||sys==SYS_QZS||sys==SYS_SBS)&&
+    if (rnxver>=212&&(sys==SYS_GPS||sys==SYS_QZS||sys==SYS_SBS)&&
         !strcmp(type+1,"1C")) { /* L1C/A */
         strcpy(type+1,"A");
     }
-    else if (ver>=2.12&&(sys==SYS_GPS||sys==SYS_QZS)&&
+    else if (rnxver>=212&&(sys==SYS_GPS||sys==SYS_QZS)&&
              (!strcmp(type+1,"1S")||!strcmp(type+1,"1L")||
               !strcmp(type+1,"1X"))) { /* L1C */
         strcpy(type+1,"B");
     }
-    else if (ver>=2.12&&(sys==SYS_GPS||sys==SYS_QZS)&&
+    else if (rnxver>=212&&(sys==SYS_GPS||sys==SYS_QZS)&&
              (!strcmp(type+1,"2S")||!strcmp(type+1,"2L")||
               !strcmp(type+1,"2X"))) { /* L2C */
         strcpy(type+1,"C");
     }
-    else if (ver>=2.12&&sys==SYS_GLO&&!strcmp(type+1,"1C")) { /* L1C/A */
+    else if (rnxver>=212&&sys==SYS_GLO&&!strcmp(type+1,"1C")) { /* L1C/A */
         strcpy(type+1,"A");
     }
-    else if (ver>=2.12&&sys==SYS_GLO&&!strcmp(type+1,"2C")) { /* L2C/A */
+    else if (rnxver>=212&&sys==SYS_GLO&&!strcmp(type+1,"2C")) { /* L2C/A */
         strcpy(type+1,"D");
     }
-    else if (sys==SYS_CMP&&(!strcmp(type+1,"1I")||!strcmp(type+1,"1Q")||
-             !strcmp(type+1,"1X"))) { /* B1 */
+    else if (sys==SYS_CMP&&(!strcmp(type+1,"2I")||!strcmp(type+1,"2Q")||
+             !strcmp(type+1,"2X"))) { /* B1_2 */
         strcpy(type+1,"2");
     }
     else if (!strcmp(type,"C1P")||!strcmp(type,"C1W")||!strcmp(type,"C1Y")||
@@ -122,7 +122,7 @@ static void rnx2opt(const rnxctr_t *rnx, rnxopt_t *opt)
     /* receiver and antenna info */
     if (!*opt->marker&&!*opt->markerno) {
         strcpy(opt->marker,rnx->sta.name);
-        strcpy(opt->markerno,rnx->sta.marker);
+        strcpy(opt->markerno,rnx->sta.markerno);
     }
     if (!*opt->rec[0]&&!*opt->rec[1]&&!*opt->rec[2]) {
         strcpy(opt->rec[0],rnx->sta.recsno);
@@ -438,7 +438,7 @@ static void setopt_obstype(const unsigned char *codes,
 {
     const char type_str[]="CLDS";
     char type[16],*id;
-    int i,j,k,freq;
+    int i,j,k,idx;
     
     trace(3,"setopt_obstype: sys=%d\n",sys);
     
@@ -448,9 +448,10 @@ static void setopt_obstype(const unsigned char *codes,
     
     for (i=0;codes[i];i++) {
         
-        if (!(id=code2obs(codes[i],&freq))) continue;
+        if (!(id=code2obs(codes[i],NULL))) continue;
+        if ((idx=code2idx(navsys[sys],codes[i]))<0) continue;
         
-        if (!(opt->freqtype&(1<<(freq-1)))||opt->mask[sys][codes[i]-1]=='0') {
+        if (!(opt->freqtype&(1<<idx))||opt->mask[sys][codes[i]-1]=='0') {
             continue;
         }
         for (j=0;j<4;j++) {
@@ -461,7 +462,7 @@ static void setopt_obstype(const unsigned char *codes,
             sprintf(type,"%c%s",type_str[j],id);
             if (type[0]=='C'&&type[2]=='N') continue; /* codeless */
             
-            if (opt->rnxver<=2.99) { /* ver.2 */
+            if (opt->rnxver<=299) { /* ver.2 */
                 
                 /* ver.3 -> ver.2 */
                 convcode(opt->rnxver,navsys[sys],type);
@@ -986,7 +987,7 @@ static void convobs(FILE **ofp, rnxopt_t *opt, strfile_t *str, int *staid,
 static void convnav(FILE **ofp, rnxopt_t *opt, strfile_t *str, int *n)
 {
     gtime_t ts1,te1,ts2,te2;
-    int sys,prn,sep_nav=opt->rnxver<=2.99||opt->sep_nav;
+    int sys,prn,sep_nav=opt->rnxver<=299||opt->sep_nav;
     
     trace(3,"convnav :\n");
     
@@ -1099,7 +1100,7 @@ static void convnav(FILE **ofp, rnxopt_t *opt, strfile_t *str, int *n)
 static void convsbs(FILE **ofp, rnxopt_t *opt, strfile_t *str, int *n)
 {
     gtime_t ts1,te1;
-    int msg,prn,sat,sys,sep_nav=opt->rnxver<=2.99||opt->sep_nav;
+    int msg,prn,sat,sys,sep_nav=opt->rnxver<=299||opt->sep_nav;
     
     trace(3,"convsbs :\n");
     

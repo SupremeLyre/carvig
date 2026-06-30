@@ -925,7 +925,7 @@ extern int init_raw(raw_t *raw, int format)
         if (!(sys=satsys(i+1,NULL))) continue;
         raw->nav.lam[i][j]=sys==SYS_GLO?lam_glo[j]:lam_carr[j];
     }
-    raw->sta.name[0]=raw->sta.marker[0]='\0';
+    raw->sta.name[0]=raw->sta.markerno[0]='\0';
     raw->sta.antdes[0]=raw->sta.antsno[0]='\0';
     raw->sta.rectype[0]=raw->sta.recver[0]=raw->sta.recsno[0]='\0';
     raw->sta.antsetup=raw->sta.itrf=raw->sta.deltype=0;

@@ -16,6 +16,7 @@
 #define MAXVAR_POSE   (5.0*D2R)       /* max variance of pose measurement */
 #define MAXDIFF       10.0            /* max time difference between solution */
 #define ADJOBS        1               /* adjust observation data */
+#define CONSOLE_SOL_TOL 0.01          /* max offset from integer second for console output */
 
 /* constants/global variables -----------------------------------------------*/
 static int nepoch=0;                  /* number of observation epochs */
@@ -321,6 +322,34 @@ static void writesolhead(stream_t *stream, const solopt_t *solopt)
     n=outsolheads(buff,solopt);
     strwrite(stream,buff,n);
 }
+/* print compact solution to console ----------------------------------------*/
+static void printsolconsole(const sol_t *sol)
+{
+    static int last_week=-1,last_sec=-1;
+    double tow,pos[3],vel[3],tow_sec;
+    int week,sec;
+
+    if (sol->time.time==0||norm(sol->rr,3)==0.0) return;
+
+    tow=time2gpst(sol->time,&week);
+    tow_sec=floor(tow+0.5);
+    if (fabs(tow-tow_sec)>CONSOLE_SOL_TOL) return;
+
+    sec=(int)tow_sec;
+    if (week==last_week&&sec==last_sec) return;
+    last_week=week;
+    last_sec=sec;
+
+    ecef2pos(sol->rr,pos);
+    ecef2enu(pos,sol->rr+3,vel);
+
+    printf("%s,%13.9f,%13.9f,%9.4f,%9.5f,%9.5f,%9.5f,%10.6f,%10.6f,%10.6f\n",
+           time_str(gpst2time(week,tow_sec),3),
+           pos[0]*R2D,pos[1]*R2D,pos[2],
+           vel[1],vel[0],vel[2],
+           sol->att[0]*R2D,sol->att[1]*R2D,NORMANG(sol->att[2]*R2D));
+    fflush(stdout);
+}
 /* write solution status output stream ---------------------------------------*/
 static int wrt_solution(rtk_t *rtk,const solopt_t *solopt)
 {
@@ -329,6 +358,7 @@ static int wrt_solution(rtk_t *rtk,const solopt_t *solopt)
     int n=0;
 
     if (rtk->sol.time.time==0) return 0;
+    printsolconsole(&rtk->sol);
     if (!out_head) {
         writesolhead(&frst,solopt);
         out_head=1;

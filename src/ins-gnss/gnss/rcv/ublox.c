@@ -228,7 +228,7 @@ static int decode_rxmraw(raw_t *raw)
         raw->obs.data[n].P[0]  =R8(p+ 8)-toff*CLIGHT;
         raw->obs.data[n].D[0]  =R4(p+16);
         prn                    =U1(p+20);
-        raw->obs.data[n].SNR[0]=(unsigned char)(I1(p+22)*4.0+0.5);
+        raw->obs.data[n].SNR[0]=(float)I1(p+22);
         raw->obs.data[n].LLI[0]=U1(p+23);
         raw->obs.data[n].code[0]=CODE_L1C;
         
@@ -332,7 +332,7 @@ static int decode_rxmrawx(raw_t *raw)
             raw->obs.data[n].L[0]-=toff*freq;
         }
         raw->obs.data[n].D[0]=R4(p+16);
-        raw->obs.data[n].SNR[0]=U1(p+26)*4;
+        raw->obs.data[n].SNR[0]=U1(p+26);
         raw->obs.data[n].LLI[0]=0;
         raw->obs.data[n].code[0]=
             sys==SYS_CMP?CODE_L1I:(sys==SYS_GAL?CODE_L1X:CODE_L1C);
@@ -839,7 +839,7 @@ static int decode_trkmeas(raw_t *raw)
         raw->obs.data[n].P[0]=tau*CLIGHT;
         raw->obs.data[n].L[0]=-adr;
         raw->obs.data[n].D[0]=(float)dop;
-        raw->obs.data[n].SNR[0]=(unsigned char)(snr*4.0);
+        raw->obs.data[n].SNR[0]=(float)snr;
         raw->obs.data[n].code[0]=sys==SYS_CMP?CODE_L1I:CODE_L1C;
         raw->obs.data[n].LLI[0]=raw->lockt[sat-1][1]>0.0?1:0;
         if (sys==SYS_SBS) { /* half-cycle valid */
@@ -959,7 +959,7 @@ static int decode_trkd5(raw_t *raw)
         raw->obs.data[n].P[0]=tau*CLIGHT;
         raw->obs.data[n].L[0]=-adr;
         raw->obs.data[n].D[0]=(float)dop;
-        raw->obs.data[n].SNR[0]=(unsigned char)(snr*4.0);
+        raw->obs.data[n].SNR[0]=(float)snr;
         raw->obs.data[n].code[0]=sys==SYS_CMP?CODE_L1I:CODE_L1C;
         raw->obs.data[n].LLI[0]=raw->lockt[sat-1][1]>0.0?1:0;
         raw->lockt[sat-1][1]=0.0;

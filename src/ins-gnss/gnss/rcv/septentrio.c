@@ -377,7 +377,7 @@ static int decode_measepoch(raw_t *raw){
             raw->obs.data[n].L[j]=0.0;
             raw->obs.data[n].P[j]=0.0;
             raw->obs.data[n].D[j]=(float)0.0;
-            raw->obs.data[n].SNR[j]=(unsigned char)0;
+            raw->obs.data[n].SNR[j]=0.0f;
             raw->obs.data[n].LLI[j]=(unsigned char)0;
             raw->obs.data[n].code[j]=CODE_NONE;            
         }
@@ -399,7 +399,7 @@ static int decode_measepoch(raw_t *raw){
             raw->obs.data[n].L[h]    = adr;
             raw->obs.data[n].P[h]    = psr;
             raw->obs.data[n].D[h]    = (float)dopplerType1;
-            raw->obs.data[n].SNR[h]  = (unsigned char)(SNR_DBHZ*4.0);
+            raw->obs.data[n].SNR[h]  = (float)SNR_DBHZ;
             raw->obs.data[n].code[h] = code;
 
             /* lock to signal indication */
@@ -481,7 +481,7 @@ static int decode_measepoch(raw_t *raw){
                 raw->obs.data[n].L[h]    = Ltype2;
                 raw->obs.data[n].P[h]    = PRtype2;
                 raw->obs.data[n].D[h]    = (float)dopplerType2;
-                raw->obs.data[n].SNR[h]  = (unsigned char)(SNR2_DBHZ*4.0);
+                raw->obs.data[n].SNR[h]  = (float)SNR2_DBHZ;
                 raw->obs.data[n].code[h] = getSignalCode(signType2);
 
                 /* lock to signal indication */
@@ -2259,4 +2259,3 @@ extern int input_sbff(raw_t *raw, FILE *fp)
     /* decode SBF block */
     return decode_sbf(raw);
 }
-

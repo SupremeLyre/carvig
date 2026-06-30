@@ -422,7 +422,7 @@ static void outsolstat(rtk_t *rtk)
         for (j=0;j<nfreq;j++) {
             fprintf(fp_stat,"$SAT,%d,%.3f,%s,%d,%.1f,%.1f,%.4f,%.4f,%d,%.0f,%d,%d,%d,%d,%d,%d\n",
                     week,tow,id,j+1,ssat->azel[0]*R2D,ssat->azel[1]*R2D,
-                    ssat->resp[j],ssat->resc[j],ssat->vsat[j],ssat->snr[j]*0.25,
+                    ssat->resp[j],ssat->resc[j],ssat->vsat[j],ssat->snr[j],
                     ssat->fix[j],ssat->slip[j]&3,ssat->lock[j],ssat->outc[j],
                     ssat->slipc[j],ssat->rejc[j]);
         }
@@ -1133,8 +1133,8 @@ static void zdres_sat(int base, double r, const obsd_t *obs, const nav_t *nav,
     if (opt->ionoopt==IONOOPT_IFLC) { /* iono-free linear combination */
         if (lam[0]==0.0||lam[1]==0.0) return;
 
-        if (testsnr(base,0,azel[1],obs->SNR[0]*0.25,&opt->snrmask)||
-            testsnr(base,1,azel[1],obs->SNR[1]*0.25,&opt->snrmask)) return;
+        if (testsnr(base,0,azel[1],obs->SNR[0],&opt->snrmask)||
+            testsnr(base,1,azel[1],obs->SNR[1],&opt->snrmask)) return;
 
         f1=CLIGHT/lam[0];
         f2=CLIGHT/lam[1];
@@ -1154,7 +1154,7 @@ static void zdres_sat(int base, double r, const obsd_t *obs, const nav_t *nav,
             if (lam[i]==0.0) continue;
 
             /* check snr mask */
-            if (testsnr(base,i,azel[1],obs->SNR[i]*0.25,&opt->snrmask)) {
+            if (testsnr(base,i,azel[1],obs->SNR[i],&opt->snrmask)) {
                 continue;
             }
             /* residuals = observable - pseudorange */

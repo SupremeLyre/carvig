@@ -359,7 +359,7 @@
 #define MAXTIMEDIFF             60.0 /* Maximum tolerable time difference in seconds */
 
 /* Utility macros: */
-#define SNRATIO(snr) (unsigned char)((snr<=0.0)||(snr>=255.5))?(0.0):((snr*4.0)+0.5)
+#define SNRATIO(snr) ((float)(((snr)<=0.0||(snr)>=255.5)?0.0:(snr)))
 
 /*
 | Typedefs:
