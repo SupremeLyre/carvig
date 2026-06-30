@@ -29,16 +29,34 @@ find_package(Boost REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}
         ${PROJECT_SOURCE_DIR}/include
-        ${PROJECT_SOURCE_DIR}/src/ins-gnss/rcv
+        ${PROJECT_SOURCE_DIR}/src/ins-gnss/common
+        ${PROJECT_SOURCE_DIR}/src/ins-gnss/gnss
+        ${PROJECT_SOURCE_DIR}/src/ins-gnss/gnss/rcv
+        ${PROJECT_SOURCE_DIR}/src/ins-gnss/ins
+        ${PROJECT_SOURCE_DIR}/src/ins-gnss/ins/rcv
+        ${PROJECT_SOURCE_DIR}/src/ins-gnss/vision
+        ${PROJECT_SOURCE_DIR}/src/ins-gnss/vision/io
+        ${PROJECT_SOURCE_DIR}/src/ins-gnss/vision/rcv
         ${PROJECT_SOURCE_DIR}/src/libviso
         ${EIGEN3_INCLUDE_DIR}
         ${OpenCV_INCLUDE_DIRS}
 )
 include_directories(${PYTHON_INCLUDE_DIRS})
 
-file(GLOB SRC_FILES
-        "src/ins-gnss/*.c" "src/ins-gnss/*.cc"
-        "src/ins-gnss/rcv/*.c" "src/ins-gnss/rcv/*.cc")
+file(GLOB_RECURSE COMMON_SRC_FILES
+        "src/ins-gnss/common/*.c" "src/ins-gnss/common/*.cc")
+file(GLOB_RECURSE GNSS_SRC_FILES
+        "src/ins-gnss/gnss/*.c" "src/ins-gnss/gnss/*.cc")
+file(GLOB_RECURSE INS_SRC_FILES
+        "src/ins-gnss/ins/*.c" "src/ins-gnss/ins/*.cc")
+file(GLOB_RECURSE VISION_SRC_FILES
+        "src/ins-gnss/vision/*.c" "src/ins-gnss/vision/*.cc")
+
+set(SRC_FILES
+        ${COMMON_SRC_FILES}
+        ${GNSS_SRC_FILES}
+        ${INS_SRC_FILES}
+        ${VISION_SRC_FILES})
 
 add_library(carvig ${SRC_FILES})
 target_link_libraries(carvig blas lapack z pthread
@@ -59,20 +77,20 @@ add_subdirectory(src/relative-pose)
 # add libvisio
 add_subdirectory(src/libviso)
 
-add_executable(carvignav src/ins-gnss/app/igvonav.cc)
+add_executable(carvignav app/igvonav.cc)
 target_link_libraries(carvignav carvig pthread
                       ${OpenCV_LIBS}
                       five-point-nister
                       viso)
 
-add_executable(tc-postpos src/ins-gnss/app/tc-postpos.cc)
+add_executable(tc-postpos app/tc-postpos.cc)
 target_link_libraries(tc-postpos
                       carvig pthread
                       ${OpenCV_LIBS}
                       five-point-nister
                       viso)
 
-add_executable(rnx2rtkp src/ins-gnss/app/rnx2rtkp.cc)
+add_executable(rnx2rtkp app/rnx2rtkp.cc)
 target_link_libraries(rnx2rtkp
                       carvig pthread
                       ${OpenCV_LIBS}
