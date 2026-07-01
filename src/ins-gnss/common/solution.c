@@ -2088,7 +2088,7 @@ extern int outsolheads(unsigned char *buff, const solopt_t *opt)
         }
         else p+=sprintf(p,"lat/lon/height=%s/%s",s1[opt->datum],s2[opt->height]);
         p+=sprintf(p,",Q=1:fix,2:float,3:sbas,4:dgps,5:single,6:ppp,ns=# of satellites),"
-                     "Qins=1:ins mechanization,2:ins mechanization and propagate states and covariance,3:ins-gnss loosely-coupled updates\n");
+                     "(Qins=1:ins mechanization,2:ins mechanization and propagate states and covariance,3:ins-gnss loosely-coupled updates,4:ins-gnss loosely-coupled updates,5:ins zero angular rate update,6:ins non-holonomic constraint updates,7:use odometry velocity measurement to aid ins,8:ins/gnss tightly coupled,9:reboot,10:doppler measurement aid,11:lack satellite tightly-coupled,12:initialization ins states,13:re-initialization ins states,14:ins and visual odometry loosely coupled,15:pose measurement fusion,16:magnetic heading auxiliary,17:RTS smoother,18:degrade solution in forward/backward combined,19:forward/backward combined solution)\n");
     }
     p+=sprintf(p,"%s  %-*s%s",COMMENTH,(opt->timef?16:8)+timeu+1,s3[opt->times],sep);
     
@@ -2253,6 +2253,9 @@ extern int outsols(unsigned char *buff, const sol_t *sol, const double *rb,
     if (opt->posf==SOLF_NMEA) {
         if (opt->nmeaintv[0]<0.0) return 0;
         if (!screent(sol->time,ts,ts,opt->nmeaintv[0])) return 0;
+    }
+    if (!type&&opt->posf==SOLF_INS&&!screent(sol->time,ts,ts,1.0)) {
+        return 0;
     }
     if ((ins&&ins->stat<=INSS_NONE)||SOLQ_NONE||(opt->posf==SOLF_ENU&&norm(rb,3)<=0.0)) {
         return 0;

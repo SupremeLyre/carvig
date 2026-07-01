@@ -132,7 +132,7 @@ EXPORT opt_t sysopts[]={
     {"out-vb",          0,  (void *)&solopt_.outvb,      ""     },
     {"out-ba",          0,  (void *)&solopt_.outba,      ""     },
     {"out-bg",          0,  (void *)&solopt_.outbg,      ""     },
-    {"out-inspof",      0,  (void *)&solopt_.ins_posf,   ""     },
+    {"out-inspof",      0,  (void *)&solopt_.ins_posf,   SOLOPT     },
     {"out-imuraw",      0,  (void *)&solopt_.outimuraw,  ""     },
     {"out-Ma",          0,  (void *)&solopt_.outMa,      ""     },
     {"out-Mg",          0,  (void *)&solopt_.outMg,      ""     },

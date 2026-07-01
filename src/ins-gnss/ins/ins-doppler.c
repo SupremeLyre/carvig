@@ -328,7 +328,7 @@ static int doppfilt(insstate_t *ins,const prcopt_t *opt,const obsd_t *obs,int n,
                 if (info) {
                     matcpy(ins->P,P,nx,nx);
 
-                    ins->gstat=SOLQ_DOP;
+                    // ins->gstat=SOLQ_DOP;
                     ins->dtrr=x[irr];
                     ins->ns=nv;
                     clp(ins,&opt->insopt,x);
