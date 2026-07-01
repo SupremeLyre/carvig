@@ -254,7 +254,7 @@ const filopt_t fileopt_default = {
         "",   /* solution statistics file */
         ""    /* debug arc_log file */
 };
-const char *formatstrs[32]={    /* stream format strings */
+const char *formatstrs[44]={    /* stream format strings */
     "RTCM 2",                   /*  0 */
     "RTCM 3",                   /*  1 */
     "NovAtel OEM6",             /*  2 */
@@ -277,6 +277,27 @@ const char *formatstrs[32]={    /* stream format strings */
     "RINEX CLK",                /* 19 */
     "SBAS",                     /* 20 */
     "NMEA 0183",                /* 21 */
+    "GSOF",                     /* 22 */
+    "u-blox EVK-M8U",           /* 23 */
+    "u-blox solution",          /* 24 */
+    "M39 IMU",                  /* 25 */
+    "RINEX RT",                 /* 26 */
+    "M39 mix",                  /* 27 */
+    "EuRoC IMU",                /* 28 */
+    "EuRoC image",              /* 29 */
+    "Karl image",               /* 30 */
+    "Malaga GNSS",              /* 31 */
+    "Malaga IMU",               /* 32 */
+    "Malaga image",             /* 33 */
+    "NovAtel OEM6 solution",    /* 34 */
+    "NovAtel OEM6 pose",        /* 35 */
+    "NovAtel OEM6 raw",         /* 36 */
+    "IGV sim feature",          /* 37 */
+    "IGV sim IMU",              /* 38 */
+    "IGV sim GNSS",             /* 39 */
+    "IGV sim feature all",      /* 40 */
+    "STIM300",                  /* 41 */
+    "YS-ASM330",                /* 42 */
     NULL
 };
 static char *obscodes[]={       /* observation code strings */

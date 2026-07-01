@@ -8,8 +8,11 @@
 
 /* constants/macros ----------------------------------------------------------*/
 #define NUMBYTES_GI310  43                      /* numbers of bytes of gi310 imu raw data */
+#define YSASM330_HEADLEN 5                       /* YS-ASM330 header bytes */
+#define YSASM330_CKLEN   2                       /* YS-ASM330 checksum bytes */
 #define MAXDIFFTIME     10.0                    /* max time difference to reset  */
 const unsigned char gi310_head[2]={0x55,0xAA};  /* imu message header */
+const unsigned char ysasm330_head[2]={0x59,0x53}; /* imu message header */
 
 /* get fields (little-endian) ------------------------------------------------*/
 #define U1(p) (*((unsigned char *)(p)))
@@ -43,6 +46,17 @@ static unsigned char chksum(const unsigned char *buff, int len)
     int i;
     unsigned char sum=0;
     for (i=0;i<len;i++) sum+=buff[i]; return sum;
+}
+/* YS-ASM330 checksum --------------------------------------------------------*/
+static void chksum_ysasm330(const unsigned char *buff, int len,
+                            unsigned char *ck1, unsigned char *ck2)
+{
+    int i;
+    *ck1=*ck2=0;
+    for (i=0;i<len;i++) {
+        *ck1=(unsigned char)(*ck1+buff[i]);
+        *ck2=(unsigned char)(*ck2+*ck1);
+    }
 }
 /* decode imu time------------------------------------------------------------*/
 static void decode_sow_time(raw_t *raw,double *sow,int *start)
@@ -153,6 +167,85 @@ static int decode_imu_m39(raw_t *raw, unsigned char data)
         raw->nbyte=0; return -1; /* checksum fail */
     }
 }
+/* decode YS-ASM330 IMU data ------------------------------------------------*/
+static int decode_imu_ysasm330(raw_t *raw)
+{
+    imud_t imu={0};
+    double ep[6]={0};
+    unsigned int usec=0;
+    int i,offset=YSASM330_HEADLEN,end=YSASM330_HEADLEN+U1(raw->buff+4);
+    int id,len,has_utc=0,has_gyro=0,has_accl=0;
+
+    raw->imut.n=0;
+    imu.imuc=U2(raw->buff+2);
+
+    while (offset+2<=end) {
+        id =U1(raw->buff+offset);
+        len=U1(raw->buff+offset+1);
+        offset+=2;
+
+        if (offset+len>end) return 0;
+
+        switch (id) {
+            case 0x01: /* IMU temperature (0.01 C) */
+                if (len==2) imu.temp=I2(raw->buff+offset)*0.01;
+                break;
+            case 0x10: /* accelerometer (micro-g) */
+                if (len==12) {
+                    for (i=0;i<3;i++) imu.accl[i]=I4(raw->buff+offset+i*4)*Mg2M;
+                    has_accl=1;
+                }
+                break;
+            case 0x20: /* gyroscope (micro-deg/s) */
+                if (len==12) {
+                    for (i=0;i<3;i++) imu.gyro[i]=I4(raw->buff+offset+i*4)*1E-6;
+                    has_gyro=1;
+                }
+                break;
+            case 0x50: /* UTC time */
+                if (len==11) {
+                    usec=U4(raw->buff+offset)*1000;
+                    if (usec>999999) usec=999999;
+                    ep[0]=U2(raw->buff+offset+4)+2000;
+                    ep[1]=U1(raw->buff+offset+6);
+                    ep[2]=U1(raw->buff+offset+7);
+                    ep[3]=U1(raw->buff+offset+8);
+                    ep[4]=U1(raw->buff+offset+9);
+                    ep[5]=U1(raw->buff+offset+10);
+                    has_utc=1;
+                }
+                break;
+            case 0x51: /* UTC microsecond extension */
+                if (len==4) {
+                    usec=U4(raw->buff+offset);
+                    if (usec>999999) usec=999999;
+                }
+                break;
+        }
+        offset+=len;
+    }
+    if (!has_utc||!has_gyro||!has_accl) return 0;
+
+    ep[5]+=usec*1E-6;
+    imu.time=utc2gpst(epoch2time(ep));
+    raw->imu=imu;
+
+    addimudata(&raw->imut,&raw->imu);
+    return 4;
+}
+/* decode YS-ASM330 IMU frame -----------------------------------------------*/
+static int decode_ysasm330(raw_t *raw)
+{
+    unsigned char ck1,ck2;
+    int len=U1(raw->buff+4);
+
+    chksum_ysasm330(raw->buff+2,3+len,&ck1,&ck2);
+    if (ck1!=raw->buff[YSASM330_HEADLEN+len]||
+        ck2!=raw->buff[YSASM330_HEADLEN+len+1]) {
+        return -1;
+    }
+    return decode_imu_ysasm330(raw);
+}
 /* input imu raw data in backward--------------------------------------------*/
 static int nextimub(const imu_t *imu,imu_t *data,int *index)
 {
@@ -186,6 +279,44 @@ extern int input_m39(raw_t *raw, unsigned char data)
     if (raw->dire) return decode_imu_m39b(raw,data);
     else           return decode_imu_m39 (raw,data);
 }
+/* input YS-ASM330 raw message -----------------------------------------------
+ * args   : raw_t *raw         IO     receiver raw data control struct
+ *          unsigned char data I stream data (1 byte)
+ * return 4:imu data, 0:no message, -1:checksum fail
+ * --------------------------------------------------------------------------*/
+extern int input_ysasm330(raw_t *raw, unsigned char data)
+{
+    int ret;
+
+    trace(3,"input_ysasm330: data=%02X\n",data);
+
+    if (raw->nbyte>=MAXRAWLEN) raw->nbyte=0;
+    raw->buff[raw->nbyte++]=data;
+
+    if (raw->nbyte==1) {
+        if (raw->buff[0]!=ysasm330_head[0]) raw->nbyte=0;
+        return 0;
+    }
+    if (raw->nbyte==2) {
+        if (!chkhead(raw->buff,ysasm330_head)) {
+            raw->nbyte=raw->buff[1]==ysasm330_head[0]?1:0;
+            if (raw->nbyte) raw->buff[0]=ysasm330_head[0];
+        }
+        return 0;
+    }
+    if (raw->nbyte<YSASM330_HEADLEN) return 0;
+
+    raw->len=YSASM330_HEADLEN+U1(raw->buff+4)+YSASM330_CKLEN;
+    if (raw->len>MAXRAWLEN) {
+        raw->nbyte=raw->len=0;
+        return -1;
+    }
+    if (raw->nbyte<raw->len) return 0;
+
+    ret=decode_ysasm330(raw);
+    raw->nbyte=raw->len=0;
+    return ret;
+}
 /* input imu raw message from file --------------------------------------------
 * input next imu raw message from file
 * args   : raw_t  *raw   IO     receiver raw data control struct
@@ -203,6 +334,19 @@ extern int input_m39f(raw_t *raw,FILE *fp)
         if ((ret=input_m39(raw,(unsigned char)data))) return ret;
     }
     return 0; /* return at every 4k bytes */
+}
+/* input YS-ASM330 raw message from file -------------------------------------*/
+extern int input_ysasm330f(raw_t *raw,FILE *fp)
+{
+    int i,data,ret;
+
+    trace(3,"input_ysasm330f:\n");
+
+    for (i=0;i<4096;i++) {
+        if ((data=fgetc(fp))==EOF) return -2;
+        if ((ret=input_ysasm330(raw,(unsigned char)data))) return ret;
+    }
+    return 0;
 }
 /* read imu measurement data from file-----------------------------------------
  * args   :  char *file     I  input imu measurement data file
@@ -250,6 +394,37 @@ extern int readimub(const char *file,imu_t* imu,int decfmt,int imufmt,int coor,
         }
     }
     fclose(fp);
+    return imu->n;
+}
+/* read YS-ASM330 imu measurement data from file------------------------------
+ * args   :  char *file     I  input imu measurement data file
+ *           imu_t *imu     O  output imu measurement data
+ * return : number of imu measurement data
+ * --------------------------------------------------------------------------*/
+extern int readysasm330(const char *file,imu_t* imu)
+{
+    FILE *fp;
+    raw_t raw={0};
+    int data,ret;
+
+    trace(3,"readysasm330:\n");
+
+    imu->n=imu->nmax=0; imu->data=NULL;
+    imu->decfmt=IMUDECFMT_RATE;
+    imu->format=STRFMT_YSASM330;
+    imu->coor=IMUCOOR_FRD;
+    imu->valfmt=IMUVALFMT_DEG;
+
+    if (!(fp=fopen(file,"rb"))) {
+        trace(2,"imu measurement data file open error \n");
+        return 0;
+    }
+    while ((data=fgetc(fp))!=EOF) {
+        ret=input_ysasm330(&raw,(unsigned char)data);
+        if (ret==4) addimudata(imu,&raw.imu);
+    }
+    fclose(fp);
+    freeimudata(&raw.imut);
     return imu->n;
 }
 /* add imu measurement data -------------------------------------------------*/

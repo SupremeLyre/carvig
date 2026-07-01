@@ -9,12 +9,13 @@
     "cmake.debugConfig": {
         "args": [
             "-o",
-            "/home/supremelyre/data/projects/carvig/app/carvig-tc.conf",
-            "-m",
-            "52090",
-            "-nc",
-            "-t",
-            "3",
+            // "/home/supremelyre/data/projects/carvig/app/carvig-tc.conf",
+            "/home/supremelyre/data/projects/carvig/app/carvig-tc-20260625.conf",
+            // "-m",
+            // "52090",
+            // "-nc",
+            // "-t",
+            // "3",
         ]
     }
 }

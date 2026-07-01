@@ -1038,6 +1038,7 @@ extern int input_raw(raw_t *raw, int format, unsigned char data)
         case STRFMT_UBXM8: return input_ubxm8(raw,data);
         case STRFMT_UBXSOL:return input_ubxsol(raw,data);
         case STRFMT_M39  : return input_m39   (raw,data);
+        case STRFMT_YSASM330: return input_ysasm330(raw,data);
         case STRFMT_RINEX_RT: return input_rinex    (raw,data);
         case STRFMT_M39MIX  : return input_m39_mix  (raw,data);
         case STRFMT_OEM6_SOL: return input_oem6_sol (raw,data);
@@ -1081,6 +1082,7 @@ extern int input_rawf(raw_t *raw, int format, FILE *fp)
         case STRFMT_UBXM8: return input_ubxm8f(raw,fp);
         case STRFMT_UBXSOL:return input_ubxsolf(raw,fp);
         case STRFMT_M39  : return input_m39f   (raw,fp);
+        case STRFMT_YSASM330: return input_ysasm330f(raw,fp);
     }
     return -2;
 }

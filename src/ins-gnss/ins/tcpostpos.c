@@ -64,6 +64,9 @@ static int readimu(const char *file,int type,const prcopt_t *prcopt,imu_t *imu)
         case STRFMT_STIM300:
             readstim300(file,imu);
             break;
+        case STRFMT_YSASM330:
+            readysasm330(file,imu);
+            break;
         default:
             trace(2,"no matched type\n");
             break;
@@ -261,17 +264,25 @@ static int fnobs(gtime_t imut,int *iobs,const imu_t *imu,const obs_t *obs)
 /* input imu measurement data-------------------------------------------------*/
 static int inputimu(imud_t *imudata,const prcopt_t* opt,imud_t *imuz,int ws)
 {
-    int i,k;
+    int i,k,imuw=0;
     if (iimu<0||iimu>=imus.n) {
         return 0; /* no imu measurement data */
     }
     /* prepare imu data for static detect */
-    for (k=0,i=iimu;k<ws&&i>=0&&i<imus.n&&imuz;k++,i++) {
+    if (imuz&&ws>0) memset(imuz,0,sizeof(imud_t)*ws);
+    for (k=0,i=(iimu-ws<0?0:iimu-ws);k<ws&&i>=0&&i<imus.n&&imuz;k++,i++) {
         imuz[k]=imus.data[i];
+        time2gpst(imuz[k].time,&imuw);
+        if (imuw==0&&week>0) {
+            imuz[k].time=timeadd(imuz[k].time,week*604800.0);
+        }
     }
     /* forward input */
     *imudata=imus.data[iimu++];
-    imudata->time=timeadd(imudata->time,week*604800.0);
+    time2gpst(imudata->time,&imuw);
+    if (imuw==0&&week>0) {
+        imudata->time=timeadd(imudata->time,week*604800.0);
+    }
     return 1;
 }
 /* search next observation data index ----------------------------------------*/
@@ -517,7 +528,7 @@ static int close_moni(stream_t *moni)
  * return: status (1: ok,0: fail)
  * ---------------------------------------------------------------------------*/
 extern int tcpostpos(prcopt_t *popt, const solopt_t *solopt, int port,
-                     const char *outfile, char** infiles)
+                     const char *outfile, char** infiles, int imufmt)
 {
     int flag=1;
     trace(3,"tcpostpos: port=%d  file=%s\n",port,outfile);
@@ -535,7 +546,7 @@ extern int tcpostpos(prcopt_t *popt, const solopt_t *solopt, int port,
         goto exit;
     }
     /* read imu data */
-    if (!(nimu=readimu(infiles[6],STRFMT_M39,popt,&imus))) {
+    if (!(nimu=readimu(infiles[6],imufmt,popt,&imus))) {
         trace(2,"read imu data fail\n");
         flag=0;
         goto exit;

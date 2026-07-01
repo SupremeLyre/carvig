@@ -183,7 +183,7 @@ extern "C"{
 #endif
 #ifdef ENAGAL
 #define MINPRNGAL   1                   /* min satellite PRN number of Galileo */
-#define MAXPRNGAL   30                  /* max satellite PRN number of Galileo */
+#define MAXPRNGAL   36                  /* max satellite PRN number of Galileo */
 #define NSATGAL    (MAXPRNGAL-MINPRNGAL+1) /* number of Galileo satellites */
 #define NSYSGAL     1
 #else
@@ -194,9 +194,9 @@ extern "C"{
 #endif
 #ifdef ENAQZS
 #define MINPRNQZS   193                 /* min satellite PRN number of QZSS */
-#define MAXPRNQZS   199                 /* max satellite PRN number of QZSS */
-#define MINPRNQZS_S 183                 /* min satellite PRN number of QZSS SAIF */
-#define MAXPRNQZS_S 189                 /* max satellite PRN number of QZSS SAIF */
+#define MAXPRNQZS   202                 /* max satellite PRN number of QZSS */
+#define MINPRNQZS_S 183                 /* min satellite PRN number of QZSS L1S */
+#define MAXPRNQZS_S 191                 /* max satellite PRN number of QZSS L1S */
 #define NSATQZS     (MAXPRNQZS-MINPRNQZS+1) /* number of QZSS satellites */
 #define NSYSQZS     1
 #else
@@ -209,7 +209,7 @@ extern "C"{
 #endif
 #ifdef ENACMP
 #define MINPRNCMP   1                   /* min satellite sat number of BeiDou */
-#define MAXPRNCMP   35                  /* max satellite sat number of BeiDou */
+#define MAXPRNCMP   50                  /* max satellite sat number of BeiDou */
 #define NSATCMP     (MAXPRNCMP-MINPRNCMP+1) /* number of BeiDou satellites */
 #define NSYSCMP     1
 #else
@@ -220,7 +220,7 @@ extern "C"{
 #endif
 #ifdef ENAIRN
 #define MINPRNIRN   1                   /* min satellite sat number of IRNSS */
-#define MAXPRNIRN   7                   /* max satellite sat number of IRNSS */
+#define MAXPRNIRN   14                  /* max satellite sat number of IRNSS */
 #define NSATIRN     (MAXPRNIRN-MINPRNIRN+1) /* number of IRNSS satellites */
 #define NSYSIRN     1
 #else
@@ -253,35 +253,31 @@ extern "C"{
 #define RNX_SYS_IRN 6
 #define RNX_NUMSYS  7
 
-#ifdef ENASBS
 #define MINPRNSBS   120                 /* min satellite PRN number of SBAS */
-#define MAXPRNSBS   142                 /* max satellite PRN number of SBAS */
+#define MAXPRNSBS   158                 /* max satellite PRN number of SBAS */
 #define NSATSBS     (MAXPRNSBS-MINPRNSBS+1) /* number of SBAS satellites */
-#else
-#define MINPRNSBS   0
-#define MAXPRNSBS   0
-#define NSATSBS     0                     
-#endif
 
 #define MAXSAT      (NSATGPS+NSATGLO+NSATGAL+NSATQZS+NSATCMP+NSATIRN+NSATSBS+NSATLEO)
                                         /* max satellite number (1 to MAXSAT) */
 #define MAXSTA      255
 
 #ifndef MAXOBS
-#define MAXOBS      64                  /* max number of obs in an epoch */
+#define MAXOBS      96                  /* max number of obs in an epoch */
 #endif
 #define MAXRCV      64                  /* max receiver number (1 to MAXRCV) */
 #define MAXOBSTYPE  64                  /* max number of obs type in RINEX */
 
 #ifdef  OBS_200HZ
 #define DTTOL       0.0025              /* tolerance of time difference (s) */
-#else
+#elif defined(OBS_100HZ)
 #define DTTOL       0.005               /* tolerance of time difference (s) */
+#else
+#define DTTOL       0.025               /* tolerance of time difference (s) */
 #endif
 
 #define MAXDTOE     7200.0              /* max time difference to GPS Toe (s) */
 #define MAXDTOE_QZS 7200.0              /* max time difference to QZSS Toe (s) */
-#define MAXDTOE_GAL 10800.0             /* max time difference to Galileo Toe (s) */
+#define MAXDTOE_GAL 14400.0             /* max time difference to Galileo Toe (s) */
 #define MAXDTOE_CMP 21600.0             /* max time difference to BeiDou Toe (s) */
 #define MAXDTOE_GLO 1800.0              /* max time difference to GLONASS Toe (s) */
 #define MAXDTOE_IRN 7200.0              /* max time difference to IRNSS Toe (s) */
@@ -299,13 +295,13 @@ extern "C"{
 #define MAXBAND     10                  /* max SBAS band of IGP */
 #define MAXNIGP     201                 /* max number of IGP in SBAS band */
 #define MAXNGEO     4                   /* max number of GEO satellites */
-#define MAXCOMMENT  10                  /* max number of RINEX comments */
+#define MAXCOMMENT  100                 /* max number of RINEX comments */
 #define MAXSTRPATH  1024                /* max length of stream path */
 #define MAXSTRMSG   1024                /* max length of stream message */
 #define MAXSTRRTK   12                  /* max number of stream in RTK server */
 #define MAXSBSMSG   32                  /* max number of SBAS msg in RTK server */
-#define MAXSOLMSG   8191                /* max length of solution message */
-#define MAXRAWLEN   4096                /* max length of receiver raw message */
+#define MAXSOLMSG   32768               /* max length of solution messages */
+#define MAXRAWLEN   16384               /* max length of receiver raw message */
 #define MAXERRMSG   4096                /* max length of error/warning message */
 #define MAXANT      64                  /* max length of station name/antenna type */
 #define MAXSOLBUF   500                 /* max number of solution buffer */
@@ -603,6 +599,7 @@ extern "C"{
 #define STRFMT_IGVSIM_GNSS 39           /* stream format: ins-gnss-vo multisensor simulator gnss measurement data*/
 #define STRFMT_IGVSIM_FEATALL 40        /* stream format: read all ins-gnss-vo multisensor simulator feature point measurement data */
 #define STRFMT_STIM300        41        /* stream format: STIM300 imu raw data */
+#define STRFMT_YSASM330       42        /* stream format: YS-ASM330 imu raw data */
 
 #define GROUND_TRUTH_KARL  1            /* Karlsruhe dataset ground truth solution format */
 #define GROUND_TRUTH_EUROC 2            /* EuRoC MAV dataset ground truth solution format */
@@ -2757,6 +2754,7 @@ EXPORT int input_tersus(raw_t *raw, unsigned char data);
 EXPORT int input_lexr  (raw_t *raw, unsigned char data);
 EXPORT int input_gsof  (raw_t *raw, unsigned char data);
 EXPORT int input_m39   (raw_t *raw, unsigned char data);
+EXPORT int input_ysasm330(raw_t *raw, unsigned char data);
 EXPORT int input_ubxm8 (raw_t *raw, unsigned char data);
 EXPORT int input_ubxsol(raw_t *raw, unsigned char data);
 EXPORT int input_rinex (raw_t *raw, unsigned char data);
@@ -2785,6 +2783,7 @@ EXPORT int input_tersusf(raw_t *raw, FILE *fp);
 EXPORT int input_lexrf  (raw_t *raw, FILE *fp);
 EXPORT int input_gsoff  (raw_t *raw, FILE *fp);
 EXPORT int input_m39f   (raw_t *raw, FILE *fp);
+EXPORT int input_ysasm330f(raw_t *raw, FILE *fp);
 EXPORT int input_ubxm8f (raw_t *raw, FILE *fp);
 EXPORT int input_ubxsolf (raw_t *raw,FILE *fp);
 EXPORT int input_m39_mixf(raw_t *raw,FILE *fp);
@@ -3123,6 +3122,7 @@ EXPORT int fine_align_lym(insstate_t *ins,const imud_t *data,int n,const insopt_
 EXPORT int readimu(const char *file, imu_t *imu,int decfmt,int format,int coor,int valfmt);
 #endif
 EXPORT int readstim300(const char *file,imu_t *imu);
+EXPORT int readysasm330(const char *file,imu_t *imu);
 EXPORT int sortimudata(imu_t *imu);
 EXPORT void adjimudata(const prcopt_t *opt,imu_t *imu);
 EXPORT void adjustimu(const prcopt_t *opt,imud_t *imu);
@@ -3271,7 +3271,7 @@ EXPORT void set_fwd_soltmp_file(const char *file);
 EXPORT void set_fwdtmp_file(const char *file);
 EXPORT int bckupinsinfo(insstate_t *ins, const insopt_t *opt, int type);
 EXPORT int tcpostpos(prcopt_t *popt, const solopt_t *solopt, int port,
-                     const char *outfile, char** infiles);
+                     const char *outfile, char** infiles, int imufmt);
 
 /* estimated states interface-------------------------------------------------*/
 EXPORT int xnP (const insopt_t *opt);

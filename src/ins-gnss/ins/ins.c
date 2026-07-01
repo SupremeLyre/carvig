@@ -637,12 +637,11 @@ static void updateatt(double t, double *Cbe, const double *omgb,const double *da
 /* normlization quaternion---------------------------------------------------*/
 static void normquat(double *q)
 {
+    int i;
     double e;
     e=0.5*(norm(q,4)-1.0);
 
-    q[0]=(1.0-e)*q[0];
-    q[1]=(1.0-e)*q[1];
-    q[2]=(1.0-e)*q[2];
+    for (i=0;i<4;i++) q[i]=(1.0-e)*q[i];
 }
 /* update ins states ----------------------------------------------------------
 * updata ins states with imu measurement data in e-frame
@@ -655,7 +654,7 @@ extern int updateins(const insopt_t *insopt,insstate_t *ins,const imud_t *data)
 {
 #if UPDINS_GRS80
     double dt,dqb[4],qk_1[4],Ck_1[9],qk[4],dqe[4],qtmp[4],da[3]={0},dv[3]={0};
-    double domgb[3],domge[3],dvfk[3],dvbk[4],domg,dCe[9];
+    double domgb[3],domge[3]={0},dvfk[3],dvbk[4],domg,dCe[9];
     double wv[3],Omge[3],ge[3],vek_1[3];
     int i;
 
@@ -1574,4 +1573,3 @@ extern void traceinss(int level, const double *Cbe,const double *re,
               vel[0],vel[1],vel[2]); /* b-frame */
     }
 }
-

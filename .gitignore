@@ -43,7 +43,7 @@ src/ins-gnss/sse2neon-binding.cc~
 src/ins-gnss/visio.cc~
 src/msckf-python/__pycache__/
 test/test_ins_gnss_vo_sim.cc~
-/build/
+/build*/
 *.rslt
 *.trace
 /bin/

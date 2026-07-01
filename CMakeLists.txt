@@ -58,11 +58,6 @@ target_link_libraries(carvig blas lapack z pthread
 set_target_properties(carvig PROPERTIES ARCHIVE_OUTPUT_DIRECTORY
                       ${PROJECT_SOURCE_DIR}/lib)
 
-# add test
-if(EXISTS "${PROJECT_SOURCE_DIR}/test/CMakeLists.txt")
-    add_subdirectory(test)
-endif()
-
 # add relative pose estimate library
 add_subdirectory(src/relative-pose)
 
