@@ -1624,8 +1624,14 @@ extern int filter(double *x, double *P, const double *H, const double *v,
     double *x_,*xp_,*P_,*Pp_,*H_;
     int i,j,k,info,*ix;
 
+    if (n<=0||m<=0) return -1;
+
     ix=imat(n,1); for (i=k=0;i<n;i++) {
         if ((x[i]!=0.0&&P[i+i*n]>0.0)&&x[i]!=DISFLAG) ix[k++]=i;
+    }
+    if (k<=0) {
+        free(ix);
+        return -1;
     }
     x_=mat(k,1); xp_=mat(k,1); P_=mat(k,k);
     Pp_=mat(k,k); H_=mat(k,m);

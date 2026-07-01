@@ -316,7 +316,7 @@ static int inputobs(obsd_t *obs,int solq, const prcopt_t *popt)
 /* write solution header to output stream ------------------------------------*/
 static void writesolhead(stream_t *stream, const solopt_t *solopt)
 {
-    unsigned char buff[1024];
+    unsigned char buff[MAXSOLMSG+1];
     int n;
 
     n=outsolheads(buff,solopt);
@@ -353,7 +353,7 @@ static void printsolconsole(const sol_t *sol)
 /* write solution status output stream ---------------------------------------*/
 static int wrt_solution(rtk_t *rtk,const solopt_t *solopt)
 {
-    unsigned char buff[1024];
+    unsigned char buff[MAXSOLMSG+1];
     static int c=0,out_head=0;
     int n=0;
 
