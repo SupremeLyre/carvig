@@ -1911,7 +1911,10 @@ static int addddamb(amb_t *amb)
 /* get double-difference ambiguity -------------------------------------------*/
 static ddamb_t *getddamb(amb_t *bias,int sat1,int sat2,int f)
 {
-    int i; for (i=0;i<bias->nb;i++)
+    int i;
+
+    if (!bias||!bias->amb||bias->nb<=0) return NULL;
+    for (i=0;i<bias->nb;i++)
         if (sat1==bias->amb[i].sat1&&
             sat2==bias->amb[i].sat2&&f==bias->amb[i].f) return bias->amb+i;
     return NULL;
@@ -1931,7 +1934,7 @@ static int storeddamb(rtk_t *rtk, const ddsat_t *ddsat, int nb,const double *bia
         if (ddsat[i].flag==1) continue;
 
         if ((amb=getddamb(&rtk->bias,ddsat[i].sat1,ddsat[i].sat2,ddsat[i].f))==NULL) {
-            addddamb(&rtk->bias);
+            if (addddamb(&rtk->bias)<0) return j;
 
             /* new ambiguity */
             amb=&rtk->bias.amb[rtk->bias.nb++];
@@ -2214,7 +2217,7 @@ static int storeambwl(rtk_t *rtk, const ddsat_t *ddsat, int nw,const double *bia
         if (ddsat[i].flag==1) continue;
 
         if ((amb=getddamb(&rtk->wlbias,ddsat[i].sat1,ddsat[i].sat2,ddsat[i].f))==NULL) {
-            addddamb(&rtk->wlbias);
+            if (addddamb(&rtk->wlbias)<0) return j;
 
             /* new ambiguity */
             amb=&rtk->wlbias.amb[rtk->wlbias.nb++];
@@ -3278,6 +3281,13 @@ extern void rtkfree(rtk_t *rtk)
         free(rtk->bias.amb);
     }
     rtk->bias.amb=NULL;
+    rtk->bias.nb=rtk->bias.nmax=rtk->bias.inherit=0;
+
+    if (rtk->wlbias.amb) {
+        free(rtk->wlbias.amb);
+    }
+    rtk->wlbias.amb=NULL;
+    rtk->wlbias.nb=rtk->wlbias.nmax=rtk->wlbias.inherit=0;
 }
 /* precise positioning ---------------------------------------------------------
 * input observation data and navigation message, compute rover position by

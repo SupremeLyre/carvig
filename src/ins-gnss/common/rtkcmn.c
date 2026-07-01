@@ -681,10 +681,10 @@ extern int code2idx(int sys, unsigned char code)
             break;
         case SYS_CMP:
             if (obs[0]=='2') return 0;
-            if (obs[0]=='7') return 1;
-            if (obs[0]=='5') return 2;
-            if (obs[0]=='6') return 3;
-            if (obs[0]=='1') return 4;
+            if (obs[0]=='6') return 1;
+            if (obs[0]=='1') return 2;
+            if (obs[0]=='5') return 3;
+            if (obs[0]=='7') return 4;
             if (obs[0]=='8') return 5;
             break;
         case SYS_IRN:

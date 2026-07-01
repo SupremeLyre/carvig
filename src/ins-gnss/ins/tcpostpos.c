@@ -91,12 +91,12 @@ static int readobsnav(const char *rfile, const char *bfile, const char *gpsnavf,
     *nepoch=0;
 
     /* read all data*/
-    if (  rfile&&readrnxt(rfile  ,1,ts,te,0.0,prcopt->rnxopt[0],obs,nav,NULL)<0) return 0;
-    if (  bfile&&readrnxt(bfile  ,2,ts,te,0.0,prcopt->rnxopt[1],obs,nav,NULL)<0) return 0;
-    if (gpsnavf&&readrnxt(gpsnavf,0,ts,te,0.0,prcopt->rnxopt[0],obs,nav,NULL)<0) return 0;
-    if (bdsnavf&&readrnxt(bdsnavf,0,ts,te,0.0,prcopt->rnxopt[0],obs,nav,NULL)<0) return 0;
-    if (glonavf&&readrnxt(glonavf,0,ts,te,0.0,prcopt->rnxopt[0],obs,nav,NULL)<0) return 0;
-    if (mixnavf&&readrnxt(mixnavf,0,ts,te,0.0,prcopt->rnxopt[0],obs,nav,NULL)<0) return 0;
+    if (  rfile&&*rfile&&readrnxt(rfile  ,1,ts,te,0.0,prcopt->rnxopt[0],obs,nav,NULL)<0) return 0;
+    if (  bfile&&*bfile&&readrnxt(bfile  ,2,ts,te,0.0,prcopt->rnxopt[1],obs,nav,NULL)<0) return 0;
+    if (gpsnavf&&*gpsnavf&&readrnxt(gpsnavf,0,ts,te,0.0,prcopt->rnxopt[0],obs,nav,NULL)<0) return 0;
+    if (bdsnavf&&*bdsnavf&&readrnxt(bdsnavf,0,ts,te,0.0,prcopt->rnxopt[0],obs,nav,NULL)<0) return 0;
+    if (glonavf&&*glonavf&&readrnxt(glonavf,0,ts,te,0.0,prcopt->rnxopt[0],obs,nav,NULL)<0) return 0;
+    if (mixnavf&&*mixnavf&&readrnxt(mixnavf,0,ts,te,0.0,prcopt->rnxopt[0],obs,nav,NULL)<0) return 0;
     if (obs->n<=0) {
         trace(1,"\n");
         return 0;

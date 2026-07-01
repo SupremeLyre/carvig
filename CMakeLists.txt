@@ -1,20 +1,12 @@
 project(carvig)
 
-cmake_minimum_required(VERSION 2.8)
-cmake_policy(SET CMP0015 NEW)
+cmake_minimum_required(VERSION 3.16)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_BUILD_TYPE Debug)
-
-set(CMAKE_CXX_FLAGS "-std=c++11 -O0 -fPIC")
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+set(CMAKE_CXX_FLAGS "-std=c++11 -fPIC")
 set(CMAKE_CXX_FLAGS "-msse3")
 set(CMAKE_C_FLAGS "-msse3")
 set(CMAKE_C_FLAGS "-mavx")
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "")
-    SET(CMAKE_BUILD_TYPE "Release")
-endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
@@ -23,7 +15,7 @@ find_package(OpenCV QUIET)
 if(NOT OpenCV_FOUND)
     message(FATAL_ERROR "OpenCV not found.")
 endif()
-find_package(Eigen3 3.1.0 REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(PythonLibs REQUIRED)
 find_package(Boost REQUIRED)
 
@@ -82,7 +74,6 @@ target_link_libraries(carvignav carvig pthread
                       ${OpenCV_LIBS}
                       five-point-nister
                       viso)
-set_target_properties(carvignav PROPERTIES LINKER_LANGUAGE CXX)
 
 add_executable(tc-postpos app/tc-postpos.c)
 target_link_libraries(tc-postpos
@@ -90,7 +81,6 @@ target_link_libraries(tc-postpos
                       ${OpenCV_LIBS}
                       five-point-nister
                       viso)
-set_target_properties(tc-postpos PROPERTIES LINKER_LANGUAGE CXX)
 
 add_executable(rnx2rtkp app/rnx2rtkp.c)
 target_link_libraries(rnx2rtkp
@@ -98,4 +88,3 @@ target_link_libraries(rnx2rtkp
                       ${OpenCV_LIBS}
                       five-point-nister
                       viso)
-set_target_properties(rnx2rtkp PROPERTIES LINKER_LANGUAGE CXX)
