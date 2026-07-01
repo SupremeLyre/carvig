@@ -114,9 +114,10 @@ static double prange(const obsd_t *obs, const nav_t *nav, const double *azel,
 
     P1=obs->P[i];
     P2=obs->P[j];
-    P1_P2=nav->cbias[obs->sat-1][0];
-    P1_C1=nav->cbias[obs->sat-1][1];
-    P2_C2=nav->cbias[obs->sat-1][2];
+    P1_P2=code2bias(nav,sys,obs->sat,obs->code[i],0)-
+          code2bias(nav,sys,obs->sat,obs->code[j],0);
+    P1_C1=code2bias(nav,sys,obs->sat,CODE_L1C,0);
+    P2_C2=code2bias(nav,sys,obs->sat,CODE_L2C,0);
     
     /* if no P1-P2 DCB, use TGD instead */
     if (P1_P2==0.0&&(sys&(SYS_GPS|SYS_GAL|SYS_QZS))) {

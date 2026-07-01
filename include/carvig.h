@@ -121,6 +121,12 @@ extern "C"{
 #define FREQ2_CMP   1.20714E9           /* BeiDou B2 frequency (Hz) */
 #define FREQ3_CMP   1.26852E9           /* BeiDou B3 frequency (Hz) */
 
+#define FREQL1      FREQ1               /* RTKLIB alias: L1/E1 frequency (Hz) */
+#define FREQL2      FREQ2               /* RTKLIB alias: L2 frequency (Hz) */
+#define FREQE5b     FREQ7               /* RTKLIB alias: E5b frequency (Hz) */
+#define FREQL5      FREQ5               /* RTKLIB alias: L5/E5a frequency (Hz) */
+#define FREQs       FREQ9               /* RTKLIB alias: S frequency (Hz) */
+
 #define FREQOCXO    1E8                 /* crystal frequency (100Mhz) */
 
 #define EFACT_GPS   1.0                 /* error factor: GPS */
@@ -278,6 +284,7 @@ extern "C"{
 #define MAXDTOE_GAL 10800.0             /* max time difference to Galileo Toe (s) */
 #define MAXDTOE_CMP 21600.0             /* max time difference to BeiDou Toe (s) */
 #define MAXDTOE_GLO 1800.0              /* max time difference to GLONASS Toe (s) */
+#define MAXDTOE_IRN 7200.0              /* max time difference to IRNSS Toe (s) */
 #define MAXDTOE_SBS 360.0               /* max time difference to SBAS Toe (s) */
 #define MAXDTOE_S   86400.0             /* max time difference to ephem toe (s) for other */
 #define MAXGDOP     300.0               /* max GDOP */
@@ -315,6 +322,7 @@ extern "C"{
 #define MAXLEAPS    64                  /* max number of leap seconds table */
 #define MAXGISLAYER 32                  /* max number of GIS data layers */
 #define MAXRCVCMD   4096                /* max length of receiver commands */
+#define MAX_CODE_BIASES 4               /* max # of code biases per frequency */
 
 #define RNX2VER     210                 /* RINEX ver.2 default output version (x100) */
 #define RNX3VER     300                 /* RINEX ver.3 default output version (x100) */
@@ -1634,7 +1642,7 @@ typedef struct {        /* navigation data type */
     double ion_irn[8];  /* IRNSS iono model parameters {a0,a1,a2,a3,b0,b1,b2,b3} */
     int leaps;          /* leap seconds (s) */
     double lam[MAXSAT][NFREQ+NEXOBS*2];  /* carrier wave lengths (m) */
-    double cbias[MAXSAT][3];    /* satellite dcb (0:p1-p2,1:p1-c1,2:p2-c2) (m) */
+    double cbias[MAXSAT][NFREQ][MAX_CODE_BIASES]; /* satellite code biases (m) */
     double rbias[MAXRCV][2][3]; /* receiver dcb (0:p1-p2,1:p1-c1,2:p2-c2) (m) */
     double wlbias[MAXSAT];      /* wide-lane bias (cycle) */
     double glo_cpbias[4];       /* glonass code-phase bias {1C,1P,2C,2P} (m) */
@@ -2660,6 +2668,8 @@ EXPORT int  input_rnxctr(rnxctr_t *rnx, FILE *fp);
 EXPORT int addobsdata(obs_t *obs, const obsd_t *data);
 EXPORT int addimudata(imu_t *imu, const imud_t *data);
 /* ephemeris and clock functions ---------------------------------------------*/
+EXPORT int pephclk(gtime_t time, int sat, const nav_t *nav, double *dts,
+                   double *varc);
 EXPORT double eph2clk (gtime_t time, const eph_t  *eph);
 EXPORT double geph2clk(gtime_t time, const geph_t *geph);
 EXPORT double seph2clk(gtime_t time, const seph_t *seph);
@@ -2683,6 +2693,7 @@ EXPORT int  getseleph(int sys);
 EXPORT void readsp3(const char *file, nav_t *nav, int opt);
 EXPORT int  readsap(const char *file, gtime_t time, nav_t *nav);
 EXPORT int  readdcb(const char *file, nav_t *nav, const sta_t *sta);
+EXPORT double code2bias(const nav_t *nav, int sys, int sat, int code, int mode);
 EXPORT int  readfcb(const char *file, nav_t *nav);
 EXPORT void alm2pos(gtime_t time, const alm_t *alm, double *rs, double *dts);
 

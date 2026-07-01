@@ -521,12 +521,7 @@ static double codebias(const obsd_t *obs, const nav_t *nav, const prcopt_t *opt,
         code<=MAXCODE) {
         return -nav->ssr[obs->sat-1].cbias[code-1];
     }
-    if (code==CODE_L1C) return nav->cbias[obs->sat-1][1];
-    if (code==CODE_L2C||code==CODE_L2X||code==CODE_L2L||
-        code==CODE_L2S) {
-        return nav->cbias[obs->sat-1][2];
-    }
-    return 0.0;
+    return code2bias(nav,satsys(obs->sat,NULL),obs->sat,code,1);
 }
 static double varerr(int sat, int sys, double el, int freq, int type,
                      const prcopt_t *opt)
@@ -602,13 +597,6 @@ static void corr_meas(const obsd_t *obs, const nav_t *nav, const double *azel,
     C1= SQR(freq[0])/(SQR(freq[0])-SQR(freq[frq2]));
     C2=-SQR(freq[frq2])/(SQR(freq[0])-SQR(freq[frq2]));
     
-#if 0
-    /* P1-P2 dcb correction (P1->Pc,P2->Pc) */
-    if (sys&(SYS_GPS|SYS_GLO|SYS_QZS)) {
-        if (P[0]!=0.0) P[0]-=C2*nav->cbias[obs->sat-1][0];
-        if (P[1]!=0.0) P[1]+=C1*nav->cbias[obs->sat-1][0];
-    }
-#endif
     if (L[0]!=0.0&&L[frq2]!=0.0) *Lc=C1*L[0]+C2*L[frq2];
     if (P[0]!=0.0&&P[frq2]!=0.0) *Pc=C1*P[0]+C2*P[frq2];
 }
