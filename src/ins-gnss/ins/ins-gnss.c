@@ -621,12 +621,6 @@ static void propP(const insopt_t *opt,const double *Q,const double *phi,
     initP(irc,nrc,nx,opt->unc.rc,UNC_CLK,P);
     free(PQ); free(Phi2);
 }
-/* propagate state estimates noting that all states are zero due to closed-loop
- * correction----------------------------------------------------------------*/
-static void propx(const insopt_t *opt,const double *x0,double *x)
-{
-    int i; for (i=0;i<xnCl(opt);i++) x[i]=1E-20;
-}
 /* jacobian of perturb rotation wrt. perturb euler angles--------------------*/
 static void jacobian_prot_pang(const double *Cbe,double *S)
 {

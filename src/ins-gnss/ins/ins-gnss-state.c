@@ -70,6 +70,14 @@ extern int xnCl(const insopt_t *opt)
            xnSa(opt)+xnRg(opt)+xnRa(opt)+xnLa(opt)+xnOs(opt)+xnOl(opt)+xnOa(opt)+
            xnCm(opt)+xnCla(opt)+xnCfo(opt)+xnCkp(opt)+xnVm(opt);
 }
+/* propagate state estimates noting that all states are zero due to closed-loop
+ * correction----------------------------------------------------------------*/
+extern void propx(const insopt_t *opt,const double *x0,double *x)
+{
+    int i;
+    (void)x0;
+    for (i=0;i<xnCl(opt);i++) x[i]=1E-20;
+}
 /* get number of observation data frequency----------------------------------*/
 extern int xnIF(const insopt_t *opt)
 {

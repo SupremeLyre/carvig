@@ -252,6 +252,7 @@ static int odofilt(const insopt_t *opt,const imud_t *imu,const odod_t *odo,
 
     if ((nv=odoHVR(opt,ins->Cbe,ins->rbl,ins->Cbr,ins->ve,ins->os,
                    imu,odo,nx,v,H,R))) {
+        propx(opt,NULL,x);
 
         /* ekf filter */
         info=filter(x,ins->P,H,v,R,nx,nv);

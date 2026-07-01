@@ -294,8 +294,11 @@ static int doppfilt(insstate_t *ins,const prcopt_t *opt,const obsd_t *obs,int n,
 
     if (nv>3) {
 
+        propx(&opt->insopt,NULL,x);
+
         /* receiver clock drift and non-zero due to close-loop */
         x[irr]=ins->dtrr;
+        if (x[irr]==0.0) x[irr]=1E-20;
 
         /* initialize every epoch for clock drift (white noise) */
         initP(irr,nrr,nx,opt->insopt.unc.rr,UNC_CLKR,P);

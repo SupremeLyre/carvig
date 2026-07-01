@@ -54,6 +54,7 @@ extern int zaru(insstate_t *ins,const insopt_t *opt,const imud_t *imu,int flag)
     v[2]=-imu[0].gyro[2]; /* residual vector */
 
     if (norm(v,3)<MAXGYRO&&norm(ins->ve,3)<MAXVEL) {
+        propx(opt,NULL,x);
 
         /* ekf filter */
         info=filter(x,ins->P,H,v,R,nx,3);

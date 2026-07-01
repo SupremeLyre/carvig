@@ -3272,6 +3272,7 @@ EXPORT int xnOs(const insopt_t *opt);
 EXPORT int xnOl(const insopt_t *opt);
 EXPORT int xnOa(const insopt_t *opt);
 EXPORT int xnCl(const insopt_t *opt);
+EXPORT void propx(const insopt_t *opt,const double *x0,double *x);
 EXPORT int xnIF(const insopt_t *opt);
 EXPORT int xnRc(const insopt_t *opt);
 EXPORT int xnRr(const insopt_t *opt);

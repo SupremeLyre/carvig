@@ -69,6 +69,7 @@ extern int zvu(insstate_t *ins,const insopt_t *opt,const imud_t *imu,int flag)
     v[2]=ins->ve[2]; /* residual vector */
 
     if (norm(v,3)<MAXVEL&&norm(imu->gyro,3)<MAXGYRO) {
+        propx(opt,NULL,x);
 
         /* ekf filter */
         info=filter(x,ins->P,H,v,R,nx,3);
@@ -90,4 +91,3 @@ extern int zvu(insstate_t *ins,const insopt_t *opt,const imud_t *imu,int flag)
     free(R); free(v);
     return info;
 }
-

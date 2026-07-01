@@ -151,6 +151,7 @@ extern int nhc(insstate_t *ins,const insopt_t *opt,const imud_t *imu)
 
     nv=bldnhc(opt,imu,ins->Cbe,ins->ve,nx,v,H,R);
     if (nv>0) {
+        propx(opt,NULL,x);
 
         /* kalman filter */
         info=filter(x,ins->P,H,v,R,nx,nv);

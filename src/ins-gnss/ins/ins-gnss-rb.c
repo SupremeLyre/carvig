@@ -255,12 +255,6 @@ static void propagateP(const insopt_t *opt,const double *Q,const double *phi,
     initP(irc,nrc,nx,opt->unc.rc,30.0,P);
     free(PQ); free(Phi2);
 }
-/* propagate state estimates noting that all states are zero due to closed-loop
- * correction----------------------------------------------------------------*/
-static void propagatex(const insopt_t *opt,const double *x0,double *x)
-{
-    int i; for (i=0;i<xnCl(opt);i++) x[i]=1E-20;
-}
 /* updates phi,P,Q of ekf----------------------------------------------------*/
 static void updstat(const insopt_t *opt,insstate_t *ins,const double dt,const double *x0,
                     const double *P0,double *phi,
@@ -281,7 +275,7 @@ static void updstat(const insopt_t *opt,insstate_t *ins,const double dt,const do
         propagateP(opt,Q,phi,P0,P);
     }
     /* update error states */
-    if (x) propagatex(opt,x0,x);
+    if (x) propx(opt,x0,x);
 
     /* backup predict information */
     if (ins->P0) matcpy(ins->P0,P  ,ins->nx,ins->nx);
@@ -920,4 +914,3 @@ exit:
     free(Q);
     return stat;
 }
-
