@@ -1770,11 +1770,13 @@ typedef struct {        /* RTCM control struct type */
     char msmtype[6][128]; /* msm signal types */
     int obsflag;        /* obs data complete flag (1:ok,0:not complete) */
     int ephsat;         /* update satellite of ephemeris */
+    int ephset;         /* update set of ephemeris (0-1) */
     double cp[MAXSAT][NFREQ+NEXOBS]; /* carrier-phase measurement */
     unsigned short lock[MAXSAT][NFREQ+NEXOBS]; /* lock time */
     unsigned short loss[MAXSAT][NFREQ+NEXOBS]; /* loss of lock count */
     gtime_t lltime[MAXSAT][NFREQ+NEXOBS]; /* last lock time */
     int nbyte;          /* number of bytes in message buffer */ 
+    int nbyte_invalid;  /* number of bytes in invalid message, used to rewind buffer */
     int nbit;           /* number of bits in word buffer */ 
     int len;            /* message length (bytes) */
     unsigned char buff[1200]; /* message buffer */
@@ -2190,6 +2192,7 @@ typedef struct {        /* receiver raw data control type */
     m39_mix_t m39;      /* m39 mix raw data (inclued image/imu) */
     pose_meas_t pose;   /* pose measurement data from camera or dual ant. */
     int ephsat;         /* sat number of update ephemeris (0:no satellite) */
+    int ephset;         /* update set of ephemeris (0-1) */
     sbsmsg_t sbsmsg;    /* SBAS message */
     char msgtype[256];  /* last message type */
     char monodir[PATH_MAX]; /* mono camera image data directory */
@@ -2591,6 +2594,7 @@ EXPORT void setstr(char *dst, const char *src, int n);
 
 /* positioning models --------------------------------------------------------*/
 EXPORT double satwavelen(int sat, int frq, const nav_t *nav);
+EXPORT int seliflc(int optnf, int sys);
 EXPORT double satazel(const double *pos, const double *e, double *azel);
 EXPORT double geodist(const double *rs, const double *rr, double *e);
 EXPORT void dops(int ns, const double *azel, double elmin, double *dop);
@@ -2674,6 +2678,8 @@ EXPORT int  satpos(gtime_t time, gtime_t teph, int sat, int ephopt,
                    int *svh);
 EXPORT void satposs(gtime_t time, const obsd_t *obs, int n, const nav_t *nav,
                     int sateph, double *rs, double *dts, double *var, int *svh);
+EXPORT void setseleph(int sys, int sel);
+EXPORT int  getseleph(int sys);
 EXPORT void readsp3(const char *file, nav_t *nav, int opt);
 EXPORT int  readsap(const char *file, gtime_t time, nav_t *nav);
 EXPORT int  readdcb(const char *file, nav_t *nav, const sta_t *sta);

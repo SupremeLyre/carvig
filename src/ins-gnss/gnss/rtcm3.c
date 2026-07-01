@@ -732,6 +732,7 @@ static int decode_type1019(rtcm_t *rtcm)
     }
     rtcm->nav.eph[sat-1]=eph;
     rtcm->ephsat=sat;
+    rtcm->ephset=0;
     return 2;
 }
 /* decode type 1020: glonass ephemerides -------------------------------------*/
@@ -798,6 +799,7 @@ static int decode_type1020(rtcm_t *rtcm)
     }
     rtcm->nav.geph[prn-1]=geph;
     rtcm->ephsat=sat;
+    rtcm->ephset=0;
     return 2;
 }
 /* decode type 1021: helmert/abridged molodenski -----------------------------*/
@@ -1044,16 +1046,19 @@ static int decode_type1044(rtcm_t *rtcm)
     }
     rtcm->nav.eph[sat-1]=eph;
     rtcm->ephsat=sat;
+    rtcm->ephset=0;
     return 2;
 }
 /* decode type 1045: galileo satellite ephemerides (ref [15]) ----------------*/
 static int decode_type1045(rtcm_t *rtcm)
 {
     eph_t eph={0};
-    double toc,sqrtA;
+    double toc,sqrtA,tt;
     char *msg;
     int i=24+12,prn,sat,week,e5a_hs,e5a_dvs,rsv,sys=SYS_GAL;
     
+    if (strstr(rtcm->opt,"-GALINAV")) return 0;
+
     if (i+484<=rtcm->len*8) {
         prn       =getbitu(rtcm->buff,i, 6);              i+= 6;
         week      =getbitu(rtcm->buff,i,12);              i+=12; /* gst-week */
@@ -1099,32 +1104,41 @@ static int decode_type1045(rtcm_t *rtcm)
         trace(2,"rtcm3 1045 satellite number error: prn=%d\n",prn);
         return -1;
     }
+    if (strstr(rtcm->opt,"-GALINAV")) return 0;
     eph.sat=sat;
     eph.week=week+1024; /* gal-week = gst-week + 1024 */
+    if (rtcm->time.time==0) rtcm->time=utc2gpst(timeget());
+    tt=timediff(gpst2time(eph.week,eph.toes),rtcm->time);
+    if      (tt<-302400.0) eph.week++;
+    else if (tt>=302400.0) eph.week--;
     eph.toe=gpst2time(eph.week,eph.toes);
     eph.toc=gpst2time(eph.week,toc);
     eph.ttr=rtcm->time;
     eph.A=sqrtA*sqrtA;
     eph.svh=(e5a_hs<<4)+(e5a_dvs<<3);
-    eph.code=2; /* data source = f/nav e5a */
+    eph.code=(1<<1)+(1<<8); /* data source = F/NAV+E5a */
+    eph.iodc=eph.iode;
     if (!strstr(rtcm->opt,"-EPHALL")) {
-        if (eph.iode==rtcm->nav.eph[sat-1].iode) return 0; /* unchanged */
+        if (eph.iode==rtcm->nav.eph[sat-1+MAXSAT].iode) return 0; /* unchanged */
     }
-    rtcm->nav.eph[sat-1]=eph;
+    rtcm->nav.eph[sat-1+MAXSAT]=eph;
     rtcm->ephsat=sat;
+    rtcm->ephset=1; /* F/NAV */
     return 2;
 }
-/* decode type 1046: galileo satellite ephemerides (extension for IGS MGEX) --*/
+/* decode type 1046: Galileo I/NAV satellite ephemerides ---------------------*/
 static int decode_type1046(rtcm_t *rtcm)
 {
     eph_t eph={0};
-    double toc,sqrtA;
+    double toc,sqrtA,tt;
     char *msg;
-    int i=24+12,prn,sat,week,e5a_hs,e5a_dvs,rsv,sys=SYS_GAL;
+    int i=24+12,prn,sat,week,e5b_hs,e5b_dvs,e1_hs,e1_dvs,sys=SYS_GAL;
     
-    if (i+484<=rtcm->len*8) {
+    if (strstr(rtcm->opt,"-GALFNAV")) return 0;
+
+    if (i+492<=rtcm->len*8) {
         prn       =getbitu(rtcm->buff,i, 6);              i+= 6;
-        week      =getbitu(rtcm->buff,i,12);              i+=12; /* gst-week */
+        week      =getbitu(rtcm->buff,i,12);              i+=12;
         eph.iode  =getbitu(rtcm->buff,i,10);              i+=10;
         eph.sva   =getbitu(rtcm->buff,i, 8);              i+= 8;
         eph.idot  =getbits(rtcm->buff,i,14)*P2_43*SC2RAD; i+=14;
@@ -1148,9 +1162,11 @@ static int decode_type1046(rtcm_t *rtcm)
         eph.omg   =getbits(rtcm->buff,i,32)*P2_31*SC2RAD; i+=32;
         eph.OMGd  =getbits(rtcm->buff,i,24)*P2_43*SC2RAD; i+=24;
         eph.tgd[0]=getbits(rtcm->buff,i,10)*P2_32;        i+=10; /* E5a/E1 */
-        e5a_hs    =getbitu(rtcm->buff,i, 2);              i+= 2; /* OSHS */
-        e5a_dvs   =getbitu(rtcm->buff,i, 1);              i+= 1; /* OSDVS */
-        rsv       =getbitu(rtcm->buff,i, 7);
+        eph.tgd[1]=getbits(rtcm->buff,i,10)*P2_32;        i+=10; /* E5b/E1 */
+        e5b_hs    =getbitu(rtcm->buff,i, 2);              i+= 2; /* E5b OSHS */
+        e5b_dvs   =getbitu(rtcm->buff,i, 1);              i+= 1; /* E5b OSDVS */
+        e1_hs     =getbitu(rtcm->buff,i, 2);              i+= 2; /* E1 OSHS */
+        e1_dvs    =getbitu(rtcm->buff,i, 1);              i+= 1; /* E1 OSDVS */
     }
     else {
         trace(2,"rtcm3 1046 length error: len=%d\n",rtcm->len);
@@ -1160,26 +1176,33 @@ static int decode_type1046(rtcm_t *rtcm)
     
     if (rtcm->outtype) {
         msg=rtcm->msgtype+strlen(rtcm->msgtype);
-        sprintf(msg," prn=%2d iode=%3d week=%d toe=%6.0f toc=%6.0f hs=%d dvs=%d",
-                prn,eph.iode,week,eph.toes,toc,e5a_hs,e5a_dvs);
+        sprintf(msg," prn=%2d iode=%3d week=%d toe=%6.0f toc=%6.0f hs=%d %d dvs=%d %d",
+                prn,eph.iode,week,eph.toes,toc,e5b_hs,e1_hs,e5b_dvs,e1_dvs);
     }
     if (!(sat=satno(sys,prn))) {
         trace(2,"rtcm3 1046 satellite number error: prn=%d\n",prn);
         return -1;
     }
+    if (strstr(rtcm->opt,"-GALFNAV")) return 0;
     eph.sat=sat;
     eph.week=week+1024; /* gal-week = gst-week + 1024 */
+    if (rtcm->time.time==0) rtcm->time=utc2gpst(timeget());
+    tt=timediff(gpst2time(eph.week,eph.toes),rtcm->time);
+    if      (tt<-302400.0) eph.week++;
+    else if (tt>=302400.0) eph.week--;
     eph.toe=gpst2time(eph.week,eph.toes);
     eph.toc=gpst2time(eph.week,toc);
     eph.ttr=rtcm->time;
     eph.A=sqrtA*sqrtA;
-    eph.svh=(e5a_hs<<4)+(e5a_dvs<<3);
-    eph.code=2; /* data source = f/nav e5a */
+    eph.svh=(e5b_hs<<7)+(e5b_dvs<<6)+(e1_hs<<1)+(e1_dvs<<0);
+    eph.code=(1<<0)+(1<<2)+(1<<9); /* data source = I/NAV+E1+E5b */
+    eph.iodc=eph.iode;
     if (!strstr(rtcm->opt,"-EPHALL")) {
         if (eph.iode==rtcm->nav.eph[sat-1].iode) return 0; /* unchanged */
     }
     rtcm->nav.eph[sat-1]=eph;
     rtcm->ephsat=sat;
+    rtcm->ephset=0; /* I/NAV */
     return 2;
 }
 /* decode type 1047: beidou ephemerides (tentative mt and format) ------------*/
@@ -1250,6 +1273,7 @@ static int decode_type1047(rtcm_t *rtcm)
     }
     rtcm->nav.eph[sat-1]=eph;
     rtcm->ephsat=sat;
+    rtcm->ephset=0;
     return 2;
 }
 /* decode type 63: beidou ephemerides (rtcm draft) ---------------------------*/
@@ -1318,6 +1342,7 @@ static int decode_type63(rtcm_t *rtcm)
     }
     rtcm->nav.eph[sat-1]=eph;
     rtcm->ephsat=sat;
+    rtcm->ephset=0;
     return 2;
 }
 /* decode ssr 1,4 message header ---------------------------------------------*/

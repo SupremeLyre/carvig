@@ -186,6 +186,7 @@ static int decode_type17(rtcm_t *rtcm)
     eph.ttr=rtcm->time;
     eph.A=sqrtA*sqrtA;
     rtcm->nav.eph[sat-1]=eph;
+    rtcm->ephset=0;
     rtcm->ephsat=sat;
     return 2;
 }

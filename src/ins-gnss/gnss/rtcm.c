@@ -87,13 +87,13 @@ extern int init_rtcm(rtcm_t *rtcm)
     }
     rtcm->msg[0]=rtcm->msgtype[0]=rtcm->opt[0]='\0';
     for (i=0;i<6;i++) rtcm->msmtype[i][0]='\0';
-    rtcm->obsflag=rtcm->ephsat=0;
+    rtcm->obsflag=rtcm->ephsat=rtcm->ephset=0;
     for (i=0;i<MAXSAT;i++) for (j=0;j<NFREQ+NEXOBS;j++) {
         rtcm->cp[i][j]=0.0;
         rtcm->lock[i][j]=rtcm->loss[i][j]=0;
         rtcm->lltime[i][j]=time0;
     }
-    rtcm->nbyte=rtcm->nbit=rtcm->len=0;
+    rtcm->nbyte=rtcm->nbyte_invalid=rtcm->nbit=rtcm->len=0;
     rtcm->word=0;
     for (i=0;i<100;i++) rtcm->nmsg2[i]=0;
     for (i=0;i<400;i++) rtcm->nmsg3[i]=0;
@@ -104,16 +104,16 @@ extern int init_rtcm(rtcm_t *rtcm)
     
     /* reallocate memory for observation and ephemris buffer */
     if (!(rtcm->obs.data=(obsd_t *)malloc(sizeof(obsd_t)*MAXOBS))||
-        !(rtcm->nav.eph =(eph_t  *)malloc(sizeof(eph_t )*MAXSAT))||
+        !(rtcm->nav.eph =(eph_t  *)malloc(sizeof(eph_t )*MAXSAT*2))||
         !(rtcm->nav.geph=(geph_t *)malloc(sizeof(geph_t)*MAXPRNGLO))) {
         free_rtcm(rtcm);
         return 0;
     }
     rtcm->obs.n=0;
-    rtcm->nav.n=MAXSAT;
-    rtcm->nav.ng=MAXPRNGLO;
+    rtcm->nav.n=rtcm->nav.nmax=MAXSAT*2;
+    rtcm->nav.ng=rtcm->nav.ngmax=MAXPRNGLO;
     for (i=0;i<MAXOBS   ;i++) rtcm->obs.data[i]=data0;
-    for (i=0;i<MAXSAT   ;i++) rtcm->nav.eph [i]=eph0;
+    for (i=0;i<MAXSAT*2 ;i++) rtcm->nav.eph [i]=eph0;
     for (i=0;i<MAXPRNGLO;i++) rtcm->nav.geph[i]=geph0;
     return 1;
 }
@@ -267,6 +267,7 @@ extern int input_rtcm3(rtcm_t *rtcm, unsigned char data)
         rtcm->len=getbitu(rtcm->buff,14,10)+3; /* length without parity */
     }
     if (rtcm->nbyte<3||rtcm->nbyte<rtcm->len+3) return 0;
+    rtcm->nbyte_invalid=rtcm->nbyte;
     rtcm->nbyte=0;
     
     /* check parity */
@@ -274,6 +275,7 @@ extern int input_rtcm3(rtcm_t *rtcm, unsigned char data)
         trace(2,"rtcm3 parity error: len=%d\n",rtcm->len);
         return 0;
     }
+    rtcm->nbyte_invalid=0;
     /* decode rtcm3 message */
     return decode_rtcm3(rtcm);
 }
@@ -312,6 +314,12 @@ extern int input_rtcm3f(rtcm_t *rtcm, FILE *fp)
     for (i=0;i<4096;i++) {
         if ((data=fgetc(fp))==EOF) return -2;
         if ((ret=input_rtcm3(rtcm,(unsigned char)data))) return ret;
+        if (rtcm->nbyte_invalid!=0) {
+            fseek(fp,-rtcm->nbyte_invalid+1,SEEK_CUR);
+            i-=rtcm->nbyte_invalid-1;
+            trace(4,"rewind buff %3d bytes, i=%d\n",rtcm->nbyte_invalid-1,i);
+            rtcm->nbyte_invalid=0;
+        }
     }
     return 0; /* return at every 4k bytes */
 }

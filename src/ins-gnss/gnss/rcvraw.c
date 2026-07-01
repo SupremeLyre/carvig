@@ -866,7 +866,7 @@ extern int init_raw(raw_t *raw, int format)
     trace(3,"init_raw: format=%d\n",format);
     
     raw->time=time0;
-    raw->ephsat=0;
+    raw->ephset=raw->ephsat=0;
     raw->sbsmsg=sbsmsg0;
     raw->msgtype[0]='\0';
     raw->strp=NULL;
@@ -902,7 +902,7 @@ extern int init_raw(raw_t *raw, int format)
 
     if (!(raw->obs.data =(obsd_t *)malloc(sizeof(obsd_t)*MAXOBS))||
         !(raw->obuf.data=(obsd_t *)malloc(sizeof(obsd_t)*MAXOBS))||
-        !(raw->nav.eph  =(eph_t  *)malloc(sizeof(eph_t )*MAXSAT))||
+        !(raw->nav.eph  =(eph_t  *)malloc(sizeof(eph_t )*MAXSAT*2))||
         !(raw->nav.alm  =(alm_t  *)malloc(sizeof(alm_t )*MAXSAT))||
         !(raw->nav.geph =(geph_t *)malloc(sizeof(geph_t)*NSATGLO))||
         !(raw->nav.seph =(seph_t *)malloc(sizeof(seph_t)*NSATSBS*2))) {
@@ -911,13 +911,13 @@ extern int init_raw(raw_t *raw, int format)
     }
     raw->obs.n =0;
     raw->obuf.n=0;
-    raw->nav.n =MAXSAT;
-    raw->nav.na=MAXSAT;
-    raw->nav.ng=NSATGLO;
-    raw->nav.ns=NSATSBS*2;
+    raw->nav.n =raw->nav.nmax =MAXSAT*2;
+    raw->nav.na=raw->nav.namax=MAXSAT;
+    raw->nav.ng=raw->nav.ngmax=NSATGLO;
+    raw->nav.ns=raw->nav.nsmax=NSATSBS*2;
     for (i=0;i<MAXOBS   ;i++) raw->obs.data [i]=data0;
     for (i=0;i<MAXOBS   ;i++) raw->obuf.data[i]=data0;
-    for (i=0;i<MAXSAT   ;i++) raw->nav.eph  [i]=eph0;
+    for (i=0;i<MAXSAT*2 ;i++) raw->nav.eph  [i]=eph0;
     for (i=0;i<MAXSAT   ;i++) raw->nav.alm  [i]=alm0;
     for (i=0;i<NSATGLO  ;i++) raw->nav.geph [i]=geph0;
     for (i=0;i<NSATSBS*2;i++) raw->nav.seph [i]=seph0;

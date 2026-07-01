@@ -83,6 +83,9 @@
 
 #define MAX_ITER_KEPLER 30        /* max number of iteration of Kelpler */
 
+/* ephemeris selections (GPS,GLO,GAL,QZS,BDS,IRN,SBS) -----------------------*/
+static int eph_sel[]={0,0,0,0,0,0,0};
+
 /* variance by ura ephemeris (ref [1] 20.3.3.3.1.1) --------------------------*/
 static double var_uraeph(int ura)
 {
@@ -386,14 +389,17 @@ extern void seph2pos(gtime_t time, const seph_t *seph, double *rs, double *dts,
 static eph_t *seleph(gtime_t time, int sat, int iode, const nav_t *nav)
 {
     double t,tmax,tmin;
-    int i,j=-1;
+    int i,j=-1,sys,sel=0;
     
     trace(4,"seleph  : time=%s sat=%2d iode=%d\n",time_str(time,3),sat,iode);
     
-    switch (satsys(sat,NULL)) {
+    sys=satsys(sat,NULL);
+    switch (sys) {
+        case SYS_GPS: tmax=MAXDTOE+1.0; sel=eph_sel[0]; break;
         case SYS_QZS: tmax=MAXDTOE_QZS+1.0; break;
-        case SYS_GAL: tmax=MAXDTOE_GAL+1.0; break;
-        case SYS_CMP: tmax=MAXDTOE_CMP+1.0; break;
+        case SYS_GAL: tmax=MAXDTOE_GAL; sel=eph_sel[2]; break;
+        case SYS_CMP: tmax=MAXDTOE_CMP+1.0; sel=eph_sel[4]; break;
+        case SYS_IRN: tmax=MAXDTOE+1.0; sel=eph_sel[5]; break;
         default: tmax=MAXDTOE+1.0; break;
     }
     tmin=tmax+1.0;
@@ -401,6 +407,12 @@ static eph_t *seleph(gtime_t time, int sat, int iode, const nav_t *nav)
     for (i=0;i<nav->n;i++) {
         if (nav->eph[i].sat!=sat) continue;
         if (iode>=0&&nav->eph[i].iode!=iode) continue;
+        if (sys==SYS_GAL) {
+            sel=getseleph(SYS_GAL);
+            if (sel==1&&!(nav->eph[i].code&(1<<9))) continue; /* I/NAV */
+            if (sel==2&&!(nav->eph[i].code&(1<<8))) continue; /* F/NAV */
+            if (timediff(nav->eph[i].toe,time)>=0.0) continue; /* AOD<=0 */
+        }
         if ((t=fabs(timediff(nav->eph[i].toe,time)))>tmax) continue;
         if (iode>=0) return nav->eph+i;
         if (t<=tmin) {j=i; tmin=t;} /* toe closest to time */
@@ -690,6 +702,33 @@ extern int satpos(gtime_t time, gtime_t teph, int sat, int ephopt,
             if (!lexeph2pos(time,sat,nav,rs,dts,var)) break; else return 1;
     }
     *svh=-1;
+    return 0;
+}
+/* set selected satellite ephemeris -----------------------------------------*/
+extern void setseleph(int sys, int sel)
+{
+    switch (sys) {
+        case SYS_GPS: eph_sel[0]=sel; break;
+        case SYS_GLO: eph_sel[1]=sel; break;
+        case SYS_GAL: eph_sel[2]=sel; break;
+        case SYS_QZS: eph_sel[3]=sel; break;
+        case SYS_CMP: eph_sel[4]=sel; break;
+        case SYS_IRN: eph_sel[5]=sel; break;
+        case SYS_SBS: eph_sel[6]=sel; break;
+    }
+}
+/* get selected satellite ephemeris -----------------------------------------*/
+extern int getseleph(int sys)
+{
+    switch (sys) {
+        case SYS_GPS: return eph_sel[0];
+        case SYS_GLO: return eph_sel[1];
+        case SYS_GAL: return eph_sel[2];
+        case SYS_QZS: return eph_sel[3];
+        case SYS_CMP: return eph_sel[4];
+        case SYS_IRN: return eph_sel[5];
+        case SYS_SBS: return eph_sel[6];
+    }
     return 0;
 }
 /* satellite positions and clocks ----------------------------------------------

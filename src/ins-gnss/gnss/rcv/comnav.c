@@ -664,9 +664,12 @@ static int decode_galephemerisb(raw_t *raw)
     double tow,sqrtA,af0_fnav,af1_fnav,af2_fnav,af0_inav,af1_inav,af2_inav,tt;
     char *msg;
     int prn,rcv_fnav,rcv_inav,svh_e1b,svh_e5a,svh_e5b,dvs_e1b,dvs_e5a,dvs_e5b;
-    int toc_fnav,toc_inav,week,sel_nav=0;
+    int toc_fnav,toc_inav,week,set,sel_eph=3;
     
     trace(3,"decode_galephemerisb: len=%d\n",raw->len);
+    
+    if (strstr(raw->opt,"-GALINAV")) sel_eph=1;
+    if (strstr(raw->opt,"-GALFNAV")) sel_eph=2;
     
     if (raw->len<CNAVHLEN+220) {
         trace(2,"cnav galephemrisb length error: len=%d\n",raw->len);
@@ -709,21 +712,6 @@ static int decode_galephemerisb(raw_t *raw)
     af2_inav  =R8(p);   p+=8;
     eph.tgd[0]=R8(p);   p+=8; /* BGD: E5A-E1 (s) */
     eph.tgd[1]=R8(p);         /* BGD: E5B-E1 (s) */
-    eph.iodc  =eph.iode;
-    eph.svh   =(svh_e5b<<7)|(dvs_e5b<<6)|(svh_e5a<<4)|(dvs_e5a<<3)|
-               (svh_e1b<<1)|dvs_e1b;
-    
-    /* ephemeris selection (0:INAV,1:FNAV) */
-    if      (strstr(raw->opt,"-GALINAV")) sel_nav=0;
-    else if (strstr(raw->opt,"-GALFNAV")) sel_nav=1;
-    else if (!rcv_inav&&rcv_fnav) sel_nav=1;
-    
-    eph.A     =sqrtA*sqrtA;
-    eph.f0    =sel_nav?af0_fnav:af0_inav;
-    eph.f1    =sel_nav?af1_fnav:af1_inav;
-    eph.f2    =sel_nav?af2_fnav:af2_inav;
-    eph.code  =sel_nav?2:1; /* data source 1:I/NAV E1B,2:F/NAV E5a-I */
-    
     if (raw->outtype) {
         msg=raw->msgtype+strlen(raw->msgtype);
         sprintf(msg," prn=%3d iod=%3d toes=%6.0f",prn,eph.iode,eph.toes);
@@ -732,6 +720,18 @@ static int decode_galephemerisb(raw_t *raw)
         trace(2,"oemv galephemeris satellite error: prn=%d\n",prn);
         return -1;
     }
+    set=rcv_fnav?1:0; /* 0:I/NAV,1:F/NAV */
+    if (!(sel_eph&1)&&set==0) return 0;
+    if (!(sel_eph&2)&&set==1) return 0;
+    
+    eph.A     =sqrtA*sqrtA;
+    eph.f0    =set?af0_fnav:af0_inav;
+    eph.f1    =set?af1_fnav:af1_inav;
+    eph.f2    =set?af2_fnav:af2_inav;
+    eph.svh   =(svh_e5b<<7)|(dvs_e5b<<6)|(svh_e5a<<4)|(dvs_e5a<<3)|
+               (svh_e1b<<1)|dvs_e1b;
+    eph.code  =set?((1<<1)+(1<<8)):((1<<0)+(1<<2)+(1<<9));
+    eph.iodc  =eph.iode;
     tow=time2gpst(raw->time,&week);
     eph.week=week; /* gps-week = gal-week */
     eph.toe=gpst2time(eph.week,eph.toes);
@@ -741,15 +741,19 @@ static int decode_galephemerisb(raw_t *raw)
     if      (tt<-302400.0) eph.week++;
     else if (tt> 302400.0) eph.week--;
     eph.toe=gpst2time(eph.week,eph.toes);
-    eph.toc=adjweek(eph.toe,sel_nav?toc_fnav:toc_inav);
-    eph.ttr=adjweek(eph.toe,tow);
+    eph.toc=adjweek(raw->time,set?toc_fnav:toc_inav);
+    eph.ttr=raw->time;
     
     if (!strstr(raw->opt,"-EPHALL")) {
-        if (raw->nav.eph[eph.sat-1].iode==eph.iode&&
-            raw->nav.eph[eph.sat-1].code==eph.code) return 0; /* unchanged */
+        if (eph.iode==raw->nav.eph[eph.sat-1+MAXSAT*set].iode&&
+            fabs(timediff(eph.toe,raw->nav.eph[eph.sat-1+MAXSAT*set].toe))<1E-9&&
+            fabs(timediff(eph.toc,raw->nav.eph[eph.sat-1+MAXSAT*set].toc))<1E-9) {
+            return 0; /* unchanged */
+        }
     }
-    raw->nav.eph[eph.sat-1]=eph;
+    raw->nav.eph[eph.sat-1+MAXSAT*set]=eph;
     raw->ephsat=eph.sat;
+    raw->ephset=set;
     return 2;
 }
 /* decode galalmanacb --------------------------------------------------------*/
