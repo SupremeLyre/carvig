@@ -45,7 +45,7 @@ struct img
 /* write solution header to output stream ------------------------------------*/
 static void writesolhead(stream_t *stream, const solopt_t *solopt)
 {
-    unsigned char buff[1024];
+    unsigned char buff[MAXSOLMSG + 1];
     int n;
 
     n = outsolheads(buff, solopt);

@@ -69,6 +69,9 @@
 #define THRES_INHERIT_BIAS 1.0 /* threshold of ambiguity inherit */
 #define INHERIT_AMB 0          /* ambiguity inherit option */
 
+#define MAX_INS_POS_CORR 150.0  /* max tightly-coupled position correction (m) */
+#define MAX_INS_VEL_CORR  50.0  /* max tightly-coupled velocity correction (m/s) */
+
 #define TTOL_MOVEB  (1.0+2*DTTOL)
 /* time sync tolerance for moving-baseline (s) */
 
@@ -2678,18 +2681,42 @@ static int valpos(rtk_t *rtk, const double *v, const double *R, const int *vflg,
 static int valins(const prcopt_t *opt,const double *x,const insstate_t *ins)
 {
     const insopt_t *insopt=&opt->insopt;
-    int nba=0,iba=0,nbg=0,ibg=0;
+    double dp=0.0,dv=0.0,rr=0.0,re[3]={0};
+    int nba=0,iba=0,nbg=0,ibg=0,iv=0,ip=0,ncl=0,i;
 
     trace(3,"valins:\n");
 
     nba=xnBa(insopt); iba=xiBa(insopt);
     nbg=xnBg(insopt); ibg=xiBg(insopt);
+    iv=xiV(insopt); ip=xiP(insopt); ncl=xnCl(insopt);
+
+    for (i=0;i<ncl;i++) {
+        if (x[i]!=DISFLAG&&!isfinite(x[i])) {
+            trace(2,"invalid estimated ins state error (i=%d x=%g)\n",i,x[i]);
+            return 0;
+        }
+    }
 
     /* check estimated states */
     if (norm(x,3)>5.0*D2R||(nba?norm(x+iba,3)>1E4*Mg2M:false)
         ||(nbg?norm(x+ibg,3)>5.0*D2R:false)) {
         trace(2,"too large estimated state error\n");
         return 0;
+    }
+    dv=x[iv]!=DISFLAG?norm(x+iv,3):0.0;
+    dp=x[ip]!=DISFLAG?norm(x+ip,3):0.0;
+    if (dv>MAX_INS_VEL_CORR||dp>MAX_INS_POS_CORR) {
+        trace(2,"too large ins close-loop correction (dv=%.3f dp=%.3f)\n",
+              dv,dp);
+        return 0;
+    }
+    if (ins&&norm(ins->re,3)>0.0&&x[ip]!=DISFLAG) {
+        for (i=0;i<3;i++) re[i]=ins->re[i]-x[ip+i];
+        rr=norm(re,3);
+        if (rr<RE_WGS84*0.8||rr>RE_WGS84*1.2) {
+            trace(2,"invalid ins close-loop position radius (r=%.3f)\n",rr);
+            return 0;
+        }
     }
     return 1;
 }
@@ -2829,6 +2856,10 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,const nav_t *nav
                 for (j=ibg;j<ibg+nbg;j++) xp[j]*=0.666;
             }
 #endif
+            if (!valins(opt,xp,&insp)) {
+                stat=SOLQ_NONE;
+                break;
+            }
             clp(&insp,insopt,xp);
             for (j=0;j<xnCl(insopt);j++) {
                 xp[j]=1E-20;
@@ -2912,17 +2943,22 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,const nav_t *nav
                 for (j=iba;j<iba+nba;j++) xa[j]*=0.666;
                 for (j=ibg;j<ibg+nbg;j++) xa[j]*=0.666;
             }
-            /* close loop for ins states */
-            clp(&insp,insopt,xa);
+            if (!valins(opt,xa,&insp)) {
+                stat=SOLQ_NONE;
+            }
+            else {
+                /* close loop for ins states */
+                clp(&insp,insopt,xa);
 
-            /* convert to gps antenna position */
-            insp2antp(&insp,rr);
+                /* convert to gps antenna position */
+                insp2antp(&insp,rr);
+            }
         }
         else {
             matcpy(rr,xa,1,3);
         }
         /* check solutions */
-        if (zdres(0,obs,nu,rs,dts,svh,nav,rr,opt,0,y,e,azel)) {
+        if (stat!=SOLQ_NONE&&zdres(0,obs,nu,rs,dts,svh,nav,rr,opt,0,y,e,azel)) {
 
             /* post-fit residuals for fixed solution */
             nv=ddres(rtk,nav,obs,dt,xa,NULL,sat,y,e,azel,iu,ir,ns,v,NULL,R,vflg,rr,NULL,NULL,
@@ -2980,20 +3016,26 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,const nav_t *nav
     else if (stat!=SOLQ_FIX&&fixwl&nny&&nw>2) {
 
         memcpy(&insp,ins,sizeof(insstate_t));
+        memcpy(&instmp,ins,sizeof(insstate_t));
 
         /* WL fix to update rover position */
         if (tc) {
-            /* close loop for ins states */
-            clp(&instmp,insopt,dxwl);
+            if (!valins(opt,dxwl,&instmp)) {
+                stat=SOLQ_NONE;
+            }
+            else {
+                /* close loop for ins states */
+                clp(&instmp,insopt,dxwl);
 
-            /* convert to gps antenna position */
-            insp2antp(&instmp,rr);
+                /* convert to gps antenna position */
+                insp2antp(&instmp,rr);
+            }
         }
         else {
             matcpy(rr,dxwl,1,3);
         }
         /* check solutions */
-        if (zdres(0,obs,nu,rs,dts,svh,nav,rr,opt,0,y,e,azel)) {
+        if (stat!=SOLQ_NONE&&zdres(0,obs,nu,rs,dts,svh,nav,rr,opt,0,y,e,azel)) {
 
             /* post-fit residuals for fixed solution */
             nv=ddres(rtk,nav,obs,dt,dxwl,NULL,sat,y,e,azel,iu,ir,ns,v,NULL,R,vflg,rr,NULL,NULL,NULL,NULL,
@@ -3003,7 +3045,7 @@ static int relpos(rtk_t *rtk, const obsd_t *obs, int nu, int nr,const nav_t *nav
             tracemat(3,Qywl,nny,nny,12,5);
 
             /* validation of fixed solution */
-            if (nv&&valpos(rtk,v,R,vflg,nv,&m,4.0)&&(tc?valins(opt,xa,ins):true)) {
+            if (nv&&valpos(rtk,v,R,vflg,nv,&m,4.0)&&(tc?valins(opt,dxwl,ins):true)) {
 
                 if (!tc) {
                     matcpy(rtk->xa,dxwl,1,na);

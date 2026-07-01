@@ -10,9 +10,11 @@
         "args": [
             "-o",
             "/home/supremelyre/data/projects/carvig/app/carvig-tc.conf",
-            // "-m",
-            // "52090",
-            // "-nc",
+            "-m",
+            "52090",
+            "-nc",
+            "-t",
+            "3",
         ]
     }
 }
